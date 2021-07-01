@@ -1,0 +1,27 @@
+.centered {
+  text-align: center;
+}
+
+.mainContent {
+  display: grid;
+  margin: 5%;
+  margin-top: 2%;
+  height: 73vh;
+  grid-template-columns: 5fr 1fr;
+  grid-template-rows: 5fr 1fr;
+}
+
+.liveEvent {
+  grid-column-start: 2;
+  grid-row-start: 1;
+  background-color: purple;
+}
+
+.calendar {
+  background-color: gray;
+}
+
+.myEvent {
+  background-color: black;
+  grid-row-start: 2;
+}
