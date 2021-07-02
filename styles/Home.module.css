@@ -11,10 +11,14 @@
   grid-template-rows: 5fr 1fr;
 }
 
-.calendar {
+.calendarComponent {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
   grid-column-start: 1;
   grid-row-start: 1;
-  background-color: gray;
+  border: solid 1px;
 }
 
 .liveEvents {
@@ -24,9 +28,18 @@
   background-color: purple;
 }
 
-
 .myEvents {
   grid-column-start: 1;
   grid-row-start: 2;
   background-color: black;
+}
+
+.calendarType {
+  border: solid 1px;
+  display: inline-block;
+  flex-shrink: 5;
+  height: 50%;
+  width: 300px;
+  background-color: gray;
+  cursor: pointer;
 }
