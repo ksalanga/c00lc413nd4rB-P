@@ -1,4 +1,9 @@
+import {useEffect, useState} from 'react'
+
 function Form(props) {
+    const [minDate, setMinDate] = useState('')
+    const [maxDate, setMaxDate] = useState('')
+
     function checkSubmission(e) {
         e.preventDefault()
         const submission = []
@@ -15,7 +20,20 @@ function Form(props) {
             props.submit(submission)
             props.next()
         }
-    } 
+    }
+
+    const handleChange = e => {
+        setMinDate(e.target.value)
+        if (maxDate != '') {
+            let startDate = new Date(e.target.value + 'Z')
+            let endDate = new Date(maxDate + 'Z')
+            if (startDate.getTime() > endDate.getTime()) {
+                document.getElementById("endDay").value = ""
+                setMaxDate('')
+            }
+        }
+    }
+
     return(
         <form>
             <input type="radio" id="private" name="privOrPublic"/>Private
@@ -25,11 +43,15 @@ function Form(props) {
             <input type="number" id="people"/>
             <br/><br/>
             <label htmlFor="startDay">Start Date</label>
-            <input type="date" id="startDay"/>
-            <label htmlFor="endDay">End Date</label>
-            <input type="date" id="endDay"/>
-            <br/><br/>
-            <input id="submit" type="submit" value="Submit" onClick={checkSubmission}/>
+            <input type="date" id="startDay" name="chooseDate" min={new Date().toISOString().split('T')[0]} onChange={handleChange}/>
+            { minDate != "" &&
+                <>
+                    <label htmlFor="endDay">End Date</label>
+                    <input type="date" id="endDay" name="chooseDate" min={minDate} onChange={(e) => setMaxDate(e.target.value)}/>
+                    <br/><br/>
+                    <input id="submit" type="submit" value="Submit" onClick={checkSubmission}/>
+                </>
+            }
         </form>
     )
 }
