@@ -35,12 +35,12 @@ function Form(props) {
     }
 
     return(
-        <form>
+        <form onSubmit={(e) => e.preventDefault()}>
             <input type="radio" id="private" name="privOrPublic"/>Private
             <input type="radio" id="public" name="privOrPublic"/>Public
             <br/><br/>
             <label htmlFor="people">Maximum Amount of People</label>
-            <input type="number" id="people"/>
+            <input type="number" id="people" min="1"/>
             <br/><br/>
             <label htmlFor="startDay">Start Date</label>
             <input type="date" id="startDay" name="chooseDate" min={new Date().toISOString().split('T')[0]} onChange={handleChange}/>
