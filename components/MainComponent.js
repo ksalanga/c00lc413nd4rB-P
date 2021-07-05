@@ -1,7 +1,7 @@
-import React, {useState} from 'react'
+import React from 'react'
 import styles from '../styles/Home.module.css'
-import Form from './Form.js'
 import Calendar from 'react-calendar'
+import CalendarForm from './CalendarForm.js'
 import 'react-calendar/dist/Calendar.css'
 
 function LiveEvents(props) {
@@ -21,58 +21,6 @@ function MyEvents(props) {
         )
     }
     return null
-}
-
-function CalendarForm(props) {
-    const [step, setStep] = useState(0)
-    const [form, setForm] = useState([])
-    const [decided, setDecided] = useState()
-    const [value, onChange] = useState(new Date())
-    const colLength = props.liveEvents ? 2 : 3
-    const rowLength = props.myEvents ? 2 : 3
-    var content = []
-
-    function showContent() {
-      if (step == 0) {
-        content = [
-          <span className={styles.calendarType} onClick={() => {
-            setStep(step + 1)
-            setDecided(false)
-          }}>
-            I Have a Rough Estimate of the Dates
-          </span>,
-          <span className={styles.calendarType} onClick={() => {
-            setStep(step + 1)
-            setDecided(true)
-          }}>
-            I know the exact Date(s)
-          </span>
-        ] 
-          
-      } else if (step == 1) {
-        content = [
-          <button onClick={() => setStep(step - 1)}>Back</button>,
-          <Form next={() => setStep(step + 1)} submit={(data) => setForm(data)}/>
-        ]
-      } else {
-        content = [
-          <Calendar selectRange={true} onChange={onChange}
-          value={value}/>,
-          form.map((item) => {return(<div>{item}</div>)})
-        ]
-      }
-
-      return content
-    }
-
-    return (
-        <div className={styles.calendarComponent} style={{
-            gridRowEnd: rowLength,
-            gridColumnEnd: colLength
-        }}>
-          {showContent()}
-        </div>
-    )
 }
 
 class MainComponent extends React.Component {
