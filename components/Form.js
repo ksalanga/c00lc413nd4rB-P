@@ -3,29 +3,22 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 
 function Form(props) {
-    const [minDate, setMinDate] = useState('')
-    const [maxDate, setMaxDate] = useState('')
+    const [minDate, setMinDate] = useState("")
+    const [maxDate, setMaxDate] = useState("")
+    const [privOrPublic, setPrivOrPublic] = useState([false, false])
+    const [maxPeople, setMaxPeople] = useState("")
     const [graphicSelector, switchSelector] = useState(false)
 
     function checkSubmission() {
-        var people = document.getElementById("people")
-        var startDay = document.getElementById("startDay")
-        var endDay = document.getElementById("endDay")
-        if (people == null || startDay == null || endDay == null) return
-        var submission = []
-        var privOrPublic = document.getElementsByName('privOrPublic')
+        if (maxPeople === "" || minDate === "" || maxDate === "" || !privOrPublic.includes(true)) return
 
-        privOrPublic.forEach((button) => {if (button.checked) submission.push(button.id)})
-        submission.push(people.value, startDay.value, endDay.value)
-        var emptyEntry = false
-        submission.forEach((item) => {if (item === "") {
-            emptyEntry = true
-            return
-        }})
-        if (submission.length == 4 && !emptyEntry) {
-            props.submit(submission)
-            props.next()
-        }
+        var submission = []
+
+        submission.push(privOrPublic[0] ? "private" : "public")
+        submission.push(maxPeople, minDate, maxDate)
+
+        props.submit(submission)
+        props.next()
     }
 
     const handleChange = e => {
@@ -38,6 +31,10 @@ function Form(props) {
                 setMaxDate('')
             }
         }
+    }
+
+    const handleClick = e => {
+        e.target.id === "private" ? setPrivOrPublic([true, false]) : setPrivOrPublic([false, true])
     }
 
     return(
@@ -64,11 +61,11 @@ function Form(props) {
             e.preventDefault()
             checkSubmission()
         }}>
-            <input type="radio" id="private" name="privOrPublic"/>Private
-            <input type="radio" id="public" name="privOrPublic"/>Public
+            <input type="radio" id="private" name="privOrPublic" onChange={handleClick} checked={privOrPublic[0]}/>Private
+            <input type="radio" id="public" name="privOrPublic" onChange={handleClick} checked={privOrPublic[1]}/>Public
             <br/><br/>
             <label htmlFor="people">Maximum Amount of People</label>
-            <input type="number" id="people" min="1" onSubmit={(e) => {e.preventDefault()}}/>
+            <input type="number" id="people" min="1" max="300" onChange={e => setMaxPeople(e.target.value)} onSubmit={(e) => {e.preventDefault()}} value={maxPeople}/>
             <br/><br/>
             <label htmlFor="startDay">Start Date</label>
             <input type="date" id="startDay" name="chooseDate" value={minDate} min={new Date().toISOString().split('T')[0]} onChange={handleChange}/>
