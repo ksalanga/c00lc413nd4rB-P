@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useCallback} from 'react'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import Image from 'next/image'
@@ -28,29 +28,59 @@ const MainCalendar = () => {
   const [month, setMonth] = useState(0)
   const ref = React.useRef()
   const [beginDate, setBegin] = useState(null)
-  
+
+  async function waitForDate(i) {
+    function dateChanged() {
+      return new Promise(resolve => {
+        const observer = new MutationObserver(() => {
+          resolve()
+        })
+        var config = { characterData: true, attributes: false, childList: false, subtree: true }
+
+        observer.observe(ref.current.getElementsByClassName('react-calendar__navigation__label')[0].children[0], config)
+      })
+    }
+
+    await dateChanged()
+
+    setMonth(month + i)
+  }
+
   // Date and State callback handler for Hovering
   useEffect(() => {
-    // arrows in ref Change State
-    ref.current.getElementsByClassName('react-calendar__navigation__arrow react-calendar__navigation__next-button')[0].onclick = () => {
-      setMonth(month + 1)
+
+    ref.current.getElementsByClassName('react-calendar__navigation')[0].onclick = (e) => {
+      switch(e.target.innerHTML) {
+        case '«':
+          waitForDate(-12)
+          break
+        case '‹':
+          waitForDate(-1)
+          break
+        case '›':
+          waitForDate(1)
+          break
+        case '»':
+          waitForDate(12)
+          break
+        default:
+          // ToDo changeTypeOfView state which will require different DOM selections for different buttons
+      }
     }
+
+    // conditionals for monthView vs. yearView vs. decadeView
     var monthView = ref.current.getElementsByClassName('react-calendar__month-view__days')[0]
-    var days = monthView.getElementsByTagName('button')
+    var days = monthView.children
 
     hoverButtons(days)
     deselect(days)
+
   }, [dates, beginDate, month])
 
   const hoverButtons = (days) => {
     if (beginDate !== null) {
-
-      // Get the first days value and compare if Date.getYear() and Date.getMonth() are the same with BeginDate
-      // If the year/ month is ahead of beginDate, all values in the beginning days of the month will be hoverable.
-      // If the year/ month is behind of beginDate, all values in the end days of the month will be hoverable.
-
       for (var i = 0; i < days.length; i++) {
-        // Each button has a hover functionality.
+        // MonthView Day Hover Functionality
         days[i].onmouseenter = (e) => {
           var currentDate = new Date(e.target.firstChild.getAttribute('aria-label'))
           for (var j = 0; j < days.length; j++) {
@@ -132,8 +162,10 @@ const MainCalendar = () => {
     }
   }
   
-  // set up OnClickMonth
-  // set up OnClickYear
+  // Range
+  // set up YearView
+  // set up DecadeView
+
 
   return (
     <>
