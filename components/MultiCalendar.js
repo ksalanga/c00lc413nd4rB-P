@@ -25,15 +25,15 @@ function getDates(startDate, stopDate) {
 const MainCalendar = () => {
   const [dates, setDates] = useState([])
   const [range, setRange] = useState(false)
-  const [month, setMonth] = useState(0)
+  const [view, setView] = useState(new Date().toLocaleString('default', {month: 'long', year: 'numeric'}))
   const ref = React.useRef()
   const [beginDate, setBegin] = useState(null)
 
-  async function waitForDate(i) {
+  async function waitForDate() {
     function dateChanged() {
       return new Promise(resolve => {
         const observer = new MutationObserver(() => {
-          resolve()
+          resolve(ref.current.getElementsByClassName('react-calendar__navigation__label')[0].children[0].innerHTML)
         })
         var config = { characterData: true, attributes: false, childList: false, subtree: true }
 
@@ -41,51 +41,51 @@ const MainCalendar = () => {
       })
     }
 
-    await dateChanged()
+    var title = await dateChanged()
+    setView(title)
+  }
 
-    setMonth(month + i)
+  const typeOfView = () => {
+    if (/\d/.test(view) && /[a-z]/i.test(view)) {
+      return('month')
+    } else if (/–/.test(view)) {
+      return('decade')
+    } else {
+      return('year')
+    }
   }
 
   // Date and State callback handler for Hovering
   useEffect(() => {
-
-    ref.current.getElementsByClassName('react-calendar__navigation')[0].onclick = (e) => {
-      switch(e.target.innerHTML) {
-        case '«':
-          waitForDate(-12)
-          break
-        case '‹':
-          waitForDate(-1)
-          break
-        case '›':
-          waitForDate(1)
-          break
-        case '»':
-          waitForDate(12)
-          break
-        default:
-          // ToDo changeTypeOfView state which will require different DOM selections for different buttons
-      }
-    }
+    ref.current.getElementsByClassName('react-calendar__navigation')[0].onclick = () => {waitForDate()}
 
     // conditionals for monthView vs. yearView vs. decadeView
-    var monthView = ref.current.getElementsByClassName('react-calendar__month-view__days')[0]
-    var days = monthView.children
+    const views = ['day', 'month', 'year', 'decade']
+    var viewType = typeOfView()
+    var viewElement = 'react-calendar__'+ viewType +'-view__' + views[views.indexOf(viewType) - 1] + 's'
+    var calendarView = ref.current.getElementsByClassName(viewElement)[0]
+    var buttons = calendarView.children
+    
+    // If it's not a month, we have to update State
+    if (viewType != 'month') for (var i = 0; i < buttons.length; i++) buttons[i].onclick = () => {waitForDate()}
 
-    hoverButtons(days)
-    deselect(days)
+    hoverButtons(buttons, viewType)
+    if (viewType == 'month') deselect(buttons)
 
-  }, [dates, beginDate, month])
+  }, [dates, beginDate, view])
 
-  const hoverButtons = (days) => {
+  const hoverButtons = (buttons, viewType) => {
     if (beginDate !== null) {
-      for (var i = 0; i < days.length; i++) {
+      for (var i = 0; i < buttons.length; i++) {
         // MonthView Day Hover Functionality
-        days[i].onmouseenter = (e) => {
-          var currentDate = new Date(e.target.firstChild.getAttribute('aria-label'))
-          for (var j = 0; j < days.length; j++) {
-            let compareDate = new Date(days[j].firstChild.getAttribute('aria-label'))
-            var addedHover = days[j].getAttribute('class')
+        buttons[i].onmouseenter = (e) => {
+          if (viewType == 'decade') var currentDate = new Date(e.target.innerHTML)
+          else var currentDate = new Date(e.target.firstChild.getAttribute('aria-label'))
+
+          for (var j = 0; j < buttons.length; j++) {
+            if (viewType == 'decade') var compareDate = new Date(buttons[j].innerHTML)
+            else var compareDate = new Date(buttons[j].firstChild.getAttribute('aria-label'))
+            var addedHover = buttons[j].getAttribute('class')
 
             // If date is between the two times Begin Date and End Date, then give it a class name of hover.
             if (compareDate.getTime() >= Math.min(beginDate.getTime(), currentDate.getTime()) 
@@ -94,21 +94,21 @@ const MainCalendar = () => {
             } else {
               addedHover = addedHover.replace(' react-calendar__tile--hover', '')
             }
-            days[j].setAttribute('class', addedHover)
+            buttons[j].setAttribute('class', addedHover)
           }
         }
       }
     }
   }
 
-  const deselect = (days) => {
+  const deselect = (buttons) => {
     // clears the active style when you deselect a date.
     var dateTimes = dates.map(day => day.getTime())
-    for (var i = 0; i < days.length; i++) {
-      var currentDate = new Date(days[i].firstChild.getAttribute('aria-label')).getTime()
+    for (var i = 0; i < buttons.length; i++) {
+      var currentDate = new Date(buttons[i].firstChild.getAttribute('aria-label')).getTime()
       if (dateTimes.indexOf(currentDate) == -1) {
-        var removeActive = days[i].getAttribute('class').replaceAll(' react-calendar__tile--active', '')
-        days[i].setAttribute('class', removeActive)
+        var removeActive = buttons[i].getAttribute('class').replaceAll(' react-calendar__tile--active', '')
+        buttons[i].setAttribute('class', removeActive)
       }
     }
   }
@@ -187,6 +187,7 @@ const MainCalendar = () => {
       setRange(!range)}}
       style={range ? {backgroundColor : 'green'} : null}>range</button>
     <Image src={Cat} width="300px" height="200px"></Image>
+    <Calendar selectRange={true}></Calendar>
     </>
   )
 }
