@@ -1,8 +1,6 @@
 import React from 'react'
 import styles from '../styles/Home.module.css'
-import Calendar from 'react-calendar'
 import CalendarForm from './CalendarForm.js'
-import 'react-calendar/dist/Calendar.css'
 
 function LiveEvents(props) {
     if (props.liveEvents) {
