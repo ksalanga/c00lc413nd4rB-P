@@ -10,18 +10,9 @@ Date.prototype.addDays = function(days) {
   return date;
 }
 
-function getDates(startDate, stopDate) {
-  var dateArray = new Array();
-  var currentDate = startDate;
-  while (currentDate <= stopDate) {
-      dateArray.push(new Date (currentDate));
-      currentDate = currentDate.addDays(1);
-  }
-  return dateArray;
-}
-
-const MainCalendar = () => {
-  const [dates, setDates] = useState([])
+export default function MultiCalendar(props) {
+  const dates = props.dates
+  const setDates = props.setDates
   const [range, setRange] = useState(false)
   const [view, setView] = useState(new Date().toLocaleString('default', {month: 'long', year: 'numeric'}))
   const ref = React.useRef()
@@ -132,7 +123,7 @@ const MainCalendar = () => {
       } else {
         var minDate = beginDate.getTime() <= date.getTime() ? beginDate : date
         var maxDate = minDate.getTime() === beginDate.getTime() ? date : beginDate
-        var selectedDates = getDates(minDate, maxDate)
+        var selectedDates = props.getDates(minDate, maxDate)
         var allDaysFilled = true
 
         selectedDates.forEach(day => {
@@ -186,14 +177,10 @@ const MainCalendar = () => {
       resetHover()
       setRange(!range)}}
       style={range ? {backgroundColor : '#90ee90'} : null}>range</button>
+    <button onClick={(e) => {
+      e.preventDefault()
+      props.switchSelector(false)
+    }}>Submit</button>
     </>
   )
-}
-
-export default function MultiCalendar() {
-    return (
-      <>
-        <MainCalendar/>
-      </>
-    )
 }
