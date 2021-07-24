@@ -165,7 +165,8 @@ export default function MultiCalendar(props) {
       className={range ? 'react-calendar--selectRange' : ''}
       tileClassName={({date}) => {
         if (dateAlreadyClicked(dates, date)) {
-        return 'react-calendar__tile--active'}}}
+        return 'react-calendar__tile--active'}
+      }}
       onClickDay={onClickDay}
       minDetail={"decade"}
       minDate={new Date()}
