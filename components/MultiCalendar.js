@@ -1,8 +1,6 @@
 import React, {useState, useEffect, useCallback} from 'react'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import Image from 'next/image'
-import Cat from '../public/vancat.jpeg'
 
 const dateAlreadyClicked = (dates, date) => dates.some(d => new Date(date).getTime() === new Date(d).getTime())
 const datesExcept = (dates, date) => dates.filter(d => !(new Date(date).getTime() === new Date(d).getTime()))
@@ -28,6 +26,7 @@ const MainCalendar = () => {
   const [view, setView] = useState(new Date().toLocaleString('default', {month: 'long', year: 'numeric'}))
   const ref = React.useRef()
   const [beginDate, setBegin] = useState(null)
+  const views = ['day', 'month', 'year', 'decade']
 
   async function waitForDate() {
     function dateChanged() {
@@ -60,7 +59,6 @@ const MainCalendar = () => {
     ref.current.getElementsByClassName('react-calendar__navigation')[0].onclick = () => {waitForDate()}
 
     // conditionals for monthView vs. yearView vs. decadeView
-    const views = ['day', 'month', 'year', 'decade']
     var viewType = typeOfView()
     var viewElement = 'react-calendar__'+ viewType +'-view__' + views[views.indexOf(viewType) - 1] + 's'
     var calendarView = ref.current.getElementsByClassName(viewElement)[0]
@@ -115,12 +113,15 @@ const MainCalendar = () => {
 
   const resetHover = () => {
     setBegin(null)
-    var monthView = ref.current.getElementsByClassName('react-calendar__month-view__days')[0]
-    var days = monthView.getElementsByTagName('button')
-    for (var i = 0; i < days.length; i++) {
-      var removeHover = days[i].getAttribute('class').replace(' react-calendar__tile--hover', '')
-      days[i].setAttribute('class', removeHover)
-      days[i].onmouseenter = null
+    var viewType = typeOfView()
+    var viewElement = 'react-calendar__'+ viewType +'-view__' + views[views.indexOf(viewType) - 1] + 's'
+    var calendarView = ref.current.getElementsByClassName(viewElement)[0]
+    var buttons = calendarView.children
+
+    for (var i = 0; i < buttons.length; i++) {
+      var removeHover = buttons[i].getAttribute('class').replace(' react-calendar__tile--hover', '')
+      buttons[i].setAttribute('class', removeHover)
+      buttons[i].onmouseenter = null
     }
   }
 
@@ -134,7 +135,6 @@ const MainCalendar = () => {
         var selectedDates = getDates(minDate, maxDate)
         var allDaysFilled = true
 
-        // Have to account for different months and years later (might not be necessary)
         selectedDates.forEach(day => {
           var included = dates.find(calendarDate => calendarDate.getTime() === day.getTime())
           if (!included) {
@@ -185,9 +185,7 @@ const MainCalendar = () => {
       e.preventDefault()
       resetHover()
       setRange(!range)}}
-      style={range ? {backgroundColor : 'green'} : null}>range</button>
-    <Image src={Cat} width="300px" height="200px"></Image>
-    <Calendar selectRange={true}></Calendar>
+      style={range ? {backgroundColor : '#90ee90'} : null}>range</button>
     </>
   )
 }
