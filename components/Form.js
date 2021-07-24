@@ -94,7 +94,7 @@ function Form(props) {
                     <label htmlFor="endDay" style={{marginLeft: "10px"}}>End Date</label>
                     <input type="date" id="endDay" name="chooseDate" value={maxDate} min={minDate} onChange={(e) => {
                         setMaxDate(e.target.value)
-                        setDates(getDates(minDate, e.target.value))
+                        setDates(getDates(new Date(minDate), new Date(e.target.value)))
                     }}/>
                     <br/><br/>
                     <button id="submit" type="submit" value="Submit">Submit</button>
