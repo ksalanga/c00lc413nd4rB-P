@@ -9,14 +9,20 @@ function Form(props) {
     const [maxPeople, setMaxPeople] = useState("")
     const [graphicSelector, switchSelector] = useState(false)
 
+    Date.prototype.addDays = function(days) {
+        var date = new Date(this.valueOf())
+        date.setDate(date.getDate() + days)
+        return date
+    }
+
     function getDates(startDate, stopDate) {
-        var dateArray = new Array();
-        var currentDate = startDate;
+        var dateArray = new Array()
+        var currentDate = startDate
         while (currentDate <= stopDate) {
-            dateArray.push(new Date (currentDate));
-            currentDate = currentDate.addDays(1);
+            dateArray.push(new Date (currentDate))
+            currentDate = currentDate.addDays(1)
         }
-        return dateArray;
+        return dateArray
     }
 
     function checkSubmission() {
@@ -49,8 +55,8 @@ function Form(props) {
     const handleChange = e => {
         setMinDate(e.target.value)
         if (maxDate != '') {
-            let startDate = new Date(e.target.value + 'Z')
-            let endDate = new Date(maxDate + 'Z')
+            let startDate = new Date(e.target.value + 'T00:00:00')
+            let endDate = new Date(maxDate + 'T00:00:00')
             if (startDate.getTime() > endDate.getTime()) {
                 document.getElementById("endDay").value = ""
                 setMaxDate('')
@@ -93,8 +99,8 @@ function Form(props) {
                 <>
                     <label htmlFor="endDay" style={{marginLeft: "10px"}}>End Date</label>
                     <input type="date" id="endDay" name="chooseDate" value={maxDate} min={minDate} onChange={(e) => {
+                        setDates(getDates(new Date(minDate+'T00:00:00'), new Date(e.target.value+'T00:00:00')))
                         setMaxDate(e.target.value)
-                        setDates(getDates(new Date(minDate), new Date(e.target.value)))
                     }}/>
                     <br/><br/>
                     <button id="submit" type="submit" value="Submit">Submit</button>
@@ -113,14 +119,14 @@ function formatDate(date) {
     var d = new Date(date),
         month = '' + (d.getMonth() + 1),
         day = '' + d.getDate(),
-        year = d.getFullYear();
+        year = d.getFullYear()
 
     if (month.length < 2) 
-        month = '0' + month;
+        month = '0' + month
     if (day.length < 2) 
-        day = '0' + day;
+        day = '0' + day
 
-    return [year, month, day].join('-');
+    return [year, month, day].join('-')
 }
 
 export default Form
