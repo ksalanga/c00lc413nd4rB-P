@@ -4,11 +4,6 @@ import 'react-calendar/dist/Calendar.css'
 
 const dateAlreadyClicked = (dates, date) => dates.some(d => new Date(date).getTime() === new Date(d).getTime())
 const datesExcept = (dates, date) => dates.filter(d => !(new Date(date).getTime() === new Date(d).getTime()))
-Date.prototype.addDays = function(days) {
-  var date = new Date(this.valueOf())
-  date.setDate(date.getDate() + days)
-  return date
-}
 
 export default function MultiCalendar(props) {
   const dates = props.dates
