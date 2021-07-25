@@ -5,9 +5,9 @@ import 'react-calendar/dist/Calendar.css'
 const dateAlreadyClicked = (dates, date) => dates.some(d => new Date(date).getTime() === new Date(d).getTime())
 const datesExcept = (dates, date) => dates.filter(d => !(new Date(date).getTime() === new Date(d).getTime()))
 Date.prototype.addDays = function(days) {
-  var date = new Date(this.valueOf());
-  date.setDate(date.getDate() + days);
-  return date;
+  var date = new Date(this.valueOf())
+  date.setDate(date.getDate() + days)
+  return date
 }
 
 export default function MultiCalendar(props) {
@@ -152,25 +152,20 @@ export default function MultiCalendar(props) {
       }
     }
   }
-  
-  // Range
-  // set up YearView
-  // set up DecadeView
-
 
   return (
     <>
     <Calendar
       inputRef={ref}
       className={range ? 'react-calendar--selectRange' : ''}
-      tileClassName={({date}) => {
-        if (dateAlreadyClicked(dates, date)) {
-        return 'react-calendar__tile--active'}
-      }}
       onClickDay={onClickDay}
       minDetail={"decade"}
       minDate={new Date()}
       maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 100))}
+      tileClassName={({date}) => {
+        if (dateAlreadyClicked(dates, date)) {
+        return 'react-calendar__tile--active'}
+      }}
       // max Date is always set to 100 years ahead of today
     />
     <button onClick={(e) => {
