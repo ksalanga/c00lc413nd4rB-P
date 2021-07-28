@@ -5,6 +5,7 @@ function Form(props) {
     const [minDate, setMinDate] = useState("")
     const [maxDate, setMaxDate] = useState("")
     const [dates, setDates] = useState([])
+    const [previousDates, setPreviousDates] = useState([])
     const [privOrPublic, setPrivOrPublic] = useState([false, false])
     const [maxPeople, setMaxPeople] = useState("")
     const [graphicSelector, switchSelector] = useState(false)
@@ -32,8 +33,9 @@ function Form(props) {
 
         submission.push(privOrPublic[0] ? "private" : "public")
         // keep minDate and maxDate for now, but push dates into the submission for later
-        submission.push(maxPeople, minDate, maxDate)
+        submission.push(maxPeople, dates)
 
+        // on Submit is going to fetch and POST to the MongoDB database.
         props.submit(submission)
         props.next()
     }
@@ -73,6 +75,7 @@ function Form(props) {
         <>
         <button onClick={(e) => {
             e.preventDefault()
+            setDates(previousDates)
             switchSelector(false)
         }}>⬅️</button>
         <MultiCalendar dates={dates} setDates={setDates} switchSelector={switchSelector} getDates={getDates}></MultiCalendar>
@@ -94,7 +97,7 @@ function Form(props) {
             <input type="number" id="people" min="1" max="300" onChange={e => setMaxPeople(e.target.value)} onSubmit={(e) => {e.preventDefault()}} value={maxPeople}/>
             <br/><br/>
             <label htmlFor="startDay">Start Date</label>
-            <input type="date" id="startDay" name="chooseDate" value={minDate} min={new Date().toISOString().split('T')[0]} onChange={handleChange}/>
+            <input type="date" id="startDay" name="chooseDate" value={minDate} min={new Date(Date.parse(new Date().toLocaleDateString())).toISOString().split('T')[0]} onChange={handleChange}/>
             { minDate != "" &&
                 <>
                     <label htmlFor="endDay" style={{marginLeft: "10px"}}>End Date</label>
@@ -109,6 +112,7 @@ function Form(props) {
         </form>
         <button onClick={(e) => {
             e.preventDefault()
+            setPreviousDates(dates)
             switchSelector(true)
         }} style={{marginLeft: "10px"}}>📅 graphical selector</button>
         </>
