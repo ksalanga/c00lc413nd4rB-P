@@ -1,8 +1,4 @@
 import { useState } from 'react'
-import { connectToDatabase } from '../util/mongodb'
-import { genSalt, hash } from 'bcrypt'
-
-const saltRounds = 20
 
 export default function SignupForm() {
 
@@ -13,50 +9,21 @@ export default function SignupForm() {
 
     const verify = async () => {
         // Change all of these to states and return JSX later
+        // Errors: userName, email, password, password not matching repassword
 
         if (userName === '' || password === '' || email === '') {
             return
         }
 
         if (password !== rePassword) {
-            console.log('password must equal repassword')
+            return
         }
 
-        const userNameCriteria = /^[a-z0-9]{3,16}$/.test(userName)
-        const passwordCriteria = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(password)
-        if (userNameCriteria && passwordCriteria) {
-            // const { db } = await connectToDatabase()
-            // foundUser = await db.collection('users').find({username: userName}).toArray()
-            // foundEmail = await db.collection('users').find({email: email}).toArray()
+        const validateUserName = /^[a-z0-9]{3,16}$/.test(userName)
+        const validatePassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(password)
+        const validateEmail = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/.test(email)
 
-            // if (foundUser.length != 0) {
-            //     alert('user already in database')
-            //     return
-            // }
-
-            // if (foundEmail.length != 0) {
-            //     alert('email already used')
-            //     return
-            // }
-            
-            // genSalt(saltRounds, function(err, salt) {
-            //     hash(password, salt, function(err, hash) {
-            //         if (err) {
-            //             alert('error in storing user')
-            //             return
-            //         }
-            //         // db.collection('users').insertOne({
-            //         //     username: userName,
-            //         //     email: email,
-            //         //     password: hash
-            //         // })
-
-            //         alert('success!')
-            //     })
-            // })
-        }
-
-        if (!userNameCriteria) {
+        if (!validateUserName) {
             const userNotification = document.createElement('div')
             const newContent = document.createTextNode('Username must be an alphanumeric string with 3 to 16 characters')
             userNotification.appendChild(newContent)
@@ -64,7 +31,7 @@ export default function SignupForm() {
             document.body.append(formElement, userNotification)
         }
 
-        if (!passwordCriteria) {
+        if (!validatePassword) {
             const userNotification = document.createElement('div')
             const newContent = document.createTextNode('Password must be 8 characters with a capital letter, number, and symbol')
             userNotification.appendChild(newContent)
@@ -72,14 +39,24 @@ export default function SignupForm() {
             document.body.append(formElement, userNotification)
         }
 
-        return
+        if (validateUserName && validatePassword && validateEmail) {
+            console.log('valid')
+            const form = {username: userName, email: email, password: password}
+            await fetch('/api/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(form)
+            }).then(response => response.json())
+            .then(data => console.log(data))
+        }
     }
 
     return (
         <>
         <form onSubmit={(e) => {
             e.preventDefault()
-            console.log('hh')
             verify()
         }}>
             Username <input type="text" onChange={(e) => setUserName(e.target.value)}/>
