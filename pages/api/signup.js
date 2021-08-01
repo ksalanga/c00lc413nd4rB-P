@@ -47,21 +47,18 @@ handler.post(async (req, res) => {
         return
     }
 
-    // validate username, email, and password.
-
-
     let checkUser = await req.db.collection('users').findOne({username: req.body['username']})
     let checkEmail = await req.db.collection('users').findOne({email: req.body['email']})
 
     if (checkUser) {
         res.statusCode = 400
-        res.json({'message': 'user already exists'})
+        res.json({'message': 'Username already exists.'})
         return
     }
 
     if (checkEmail) {
         res.statusCode = 400
-        res.json({'message': 'email already exists'})
+        res.json({'message': 'Email already exists.'})
         return
     }
 
