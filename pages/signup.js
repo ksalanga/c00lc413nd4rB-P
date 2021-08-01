@@ -1,9 +1,10 @@
 import SignupForm from '../components/SignupForm.js'
 
+
 export default function Signup() { 
     return (
         <>
-        <h1>Hi</h1>
+        <h1>Signup</h1>
         <SignupForm />
         </>
     )
