@@ -1,84 +1,73 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function SignupForm() {
+    const [form, setForm] = useState({username: '', email: '', password: '', repassword: ''})
+    const [validUserName, setValidUserName] = useState(null)
+    const [validEmail, setValidEmail] = useState(null)
+    const [validPassword, setValidPassword] = useState(null)
+    const [matchingPassword, setMatching] = useState(null)
+    const [textOrPass, setTextOrPass] = useState('password')
+    const [serverMessage, setServerMessage] = useState('')
 
-    const [userName, setUserName] = useState('')
-    const [password, setPassword] = useState('')
-    const [rePassword, setRePassword] = useState('')
-    const [email, setEmail] = useState('')
+    useEffect(() => {
+    }, [validUserName, validEmail, validPassword, matchingPassword])
 
     const verify = async () => {
-        // Change all of these to states and return JSX later
-        // Errors: userName, email, password, password not matching repassword
+        if (form['username'] === '' || form['password'] === '' || form['email'] === '') return
 
-        if (userName === '' || password === '' || email === '') {
-            return
-        }
+        const isValidUserName = /^[a-z0-9]{3,16}$/.test(form['username'])
+        const isValidEmail = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/.test(form['email'])
+        const isValidPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(form['password'])
+        const isMatching = form['password'] === form['repassword']
 
-        if (password !== rePassword) {
-            return
-        }
+        if (isValidUserName) setValidUserName(true)
+        else setValidUserName(false)
 
-        const validateUserName = /^[a-z0-9]{3,16}$/.test(userName)
-        const validatePassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(password)
-        const validateEmail = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/.test(email)
+        if (isValidEmail) setValidEmail(true)
+        else setValidEmail(false)
 
-        if (!validateUserName) {
-            const userNotification = document.createElement('div')
-            const newContent = document.createTextNode('Username must be an alphanumeric string with 3 to 16 characters')
-            userNotification.appendChild(newContent)
-            const formElement = document.getElementsByTagName('form')[0]
-            document.body.append(formElement, userNotification)
-        }
+        if (isValidPassword) setValidPassword(true)
+        else setValidPassword(false)
 
-        if (!validatePassword) {
-            const userNotification = document.createElement('div')
-            const newContent = document.createTextNode('Password must be 8 characters with a capital letter, number, and symbol')
-            userNotification.appendChild(newContent)
-            const formElement = document.getElementsByTagName('form')[0]
-            document.body.append(formElement, userNotification)
-        }
+        if (isMatching) setMatching(true)
+        else setMatching(false)
 
-        if (validateUserName && validatePassword && validateEmail) {
-            console.log('valid')
-            const form = {username: userName, email: email, password: password}
+        if (isValidUserName && isValidPassword && isValidEmail && isMatching) {
+            const submission = {username: form['username'], email: form['email'], password: form['password']}
             await fetch('/api/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(form)
+                body: JSON.stringify(submission)
             }).then(response => response.json())
-            .then(data => console.log(data))
+            .then(data => setServerMessage(data.message))
         }
     }
 
     return (
         <>
+        {(serverMessage !== '' && serverMessage !== 'New User Created.') && <div><b>{serverMessage}</b></div>}
         <form onSubmit={(e) => {
             e.preventDefault()
             verify()
         }}>
-            Username <input type="text" onChange={(e) => setUserName(e.target.value)}/>
+            Username <input type="text" onChange={(e) => setForm({...form, ['username']: e.target.value})}/>
             <br></br>
             <br></br>
-            Email <input type="email" onChange={(e) => setEmail(e.target.value)}/>
+            Email <input type="email" onChange={(e) => setForm({...form, ['email']: e.target.value})}/>
             <br></br>
             <br></br>
-            Password <input type="password" className="password" onChange={(e) => setPassword(e.target.value)}/>
-            Re-enter password <input type="password" className="password" onChange={(e) => setRePassword(e.target.value)}/>
+            Password <input type={textOrPass} className="password" onChange={(e) => setForm({...form, ['password']: e.target.value})}/>
+            Re-enter password <input type={textOrPass} className="password" onChange={(e) => setForm({...form, ['repassword']: e.target.value})}/>
             <button type="submit">Submit</button>
         </form>
-        <button onClick={() => {
-                var passwords = document.getElementsByClassName('password')
-                for (var password of passwords) {
-                    if (password.getAttribute('type') === 'password') {
-                        password.setAttribute('type', 'text')
-                    } else {
-                        password.setAttribute('type', 'password')
-                    }
-                }
-        }}>toggle pass</button>
+        <button onClick={(e) => { e.preventDefault()
+            setTextOrPass(textOrPass === 'password' ? 'text' : 'password')}}>👁️</button>
+        {validUserName === false && <div><b>invalid username</b></div>}
+        {validEmail === false && <div><b>invalid email</b></div>}
+        {validPassword === false && <div><b>invalid password</b></div>}
+        {matchingPassword === false && <div><b>passwords must match</b></div>}
         </>
     )
 }
