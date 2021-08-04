@@ -1,6 +1,6 @@
 import { hash } from "bcrypt"
 import nextConnect from 'next-connect'
-import middleware from '../../middleware/database.js'
+import middleware from '../../../middleware/database.js'
 
 const handler = nextConnect()
 
@@ -39,7 +39,7 @@ const errorHandling = (req, res) => {
     }
 }
 
-handler.post('/signup', async (req, res) => {
+handler.post(async (req, res) => {
     try {
         errorHandling(req, res)
     } catch (error) {
@@ -69,7 +69,7 @@ handler.post('/signup', async (req, res) => {
     req.body['calendars'] = null
 
     req.body['password'] = await hash(req.body['password'], saltRounds)
-
+ 
     await req.db.collection('users').insertOne(req.body)
     res.statusCode = 200
     res.json({'message': 'New User Created.'})
