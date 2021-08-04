@@ -34,7 +34,7 @@ export default function SignupForm() {
 
         if (isValidUserName && isValidPassword && isValidEmail && isMatching) {
             const submission = {username: form['username'], email: form['email'], password: form['password']}
-            await fetch('/api/signup', {
+            await fetch('/api/users/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
