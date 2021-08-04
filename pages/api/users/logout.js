@@ -1,0 +1,2 @@
+// Delete Session
+// Delete cookies
