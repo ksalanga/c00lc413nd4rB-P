@@ -39,7 +39,7 @@ const errorHandling = (req, res) => {
     }
 }
 
-handler.post(async (req, res) => {
+handler.post('/signup', async (req, res) => {
     try {
         errorHandling(req, res)
     } catch (error) {
