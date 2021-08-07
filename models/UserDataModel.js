@@ -39,18 +39,18 @@ export default class UserDataModel {
     }
 
     async matchingPassword(username, password) {
-        try {
-            await client.connect()
+      try {
+          await client.connect()
 
-            const user = await users.findOne({username: username})
+          const user = await users.findOne({username: username})
 
-            if (!user) return false
+          if (!user) return false
 
-            const hashPassword = user.password
+          const hashPassword = user.password
 
-            return await compare(password, hashPassword)
-        } catch (e) {
-            console.log(e)
-        }
+          return await compare(password, hashPassword)
+      } catch (e) {
+          console.log(e)
+      }
     }
 }
