@@ -1,12 +1,10 @@
-import { hash } from "bcrypt"
 import nextConnect from 'next-connect'
-import middleware from '../../../middleware/database.js'
+import UserDataModel from '../../../models/UserDataModel'
 
 const handler = nextConnect()
+const Users = new UserDataModel()
 
-handler.use(middleware)
-
-const errorHandling = (req, res) => {
+const errorHandling = async (req, res) => {
     const requestSize = req.socket.bytesRead
     const sizeLimit = 10 ** 6 // 1MB
     if (requestSize > sizeLimit) {
@@ -37,40 +35,28 @@ const errorHandling = (req, res) => {
         res.statusCode = 400
         throw `Error formatting username, email, password. UserName correct: ${validateUserName}, Email correct: ${validateEmail}, Password correct: ${validatePassword}`
     }
-}
 
-handler.post(async (req, res) => {
-    try {
-        errorHandling(req, res)
-    } catch (error) {
-        res.json({'message' : error})
-        return
-    }
-
-    let checkUser = await req.db.collection('users').findOne({username: req.body['username']})
-    let checkEmail = await req.db.collection('users').findOne({email: req.body['email']})
+    let checkUser = await Users.findUser(req.body.username)
+    let checkEmail = await Users.findEmail(req.body.email)
 
     if (checkUser) {
         res.statusCode = 400
-        res.json({'message': 'Username already exists.'})
-        return
+        throw 'Username already exists.'
     }
 
     if (checkEmail) {
         res.statusCode = 400
-        res.json({'message': 'Email already exists.'})
-        return
+        throw 'Email already exists.'
     }
+}
 
-    // Hash Password
-    const saltRounds = 10
-
-    // insert empty calendars key
-    req.body['calendars'] = null
-
-    req.body['password'] = await hash(req.body['password'], saltRounds)
+handler.post(async (req, res) => {
+    errorHandling(req, res).catch(error => {
+        res.json({'message' : error})
+        return
+    })
  
-    await req.db.collection('users').insertOne(req.body)
+    await Users.createUser(req.body)
     res.statusCode = 200
     res.json({'message': 'New User Created.'})
 })
