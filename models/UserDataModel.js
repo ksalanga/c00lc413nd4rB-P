@@ -12,37 +12,45 @@ const client = new MongoClient(MONGODB_URI, {
   useUnifiedTopology: true,
 })
 
+const users = client.db(MONGODB_DB).collection('users')
+
 export default class UserDataModel {
     async findUser(username) {
       await client.connect()
       
-      return await client.db(MONGODB_DB).collection('users').findOne({username: username})
+      return await users.findOne({username: username})
     }
 
     async findEmail(email) {
-      if (!client) this.connectToDatabase()
+      await client.connect()
 
       return await users.findOne({email: email.toLowerCase()})
     }
 
     async createUser(form) {
-      if (!client) this.connectToDatabase()
+      await client.connect()
 
       const saltRounds = 10
       form['username'] = form['username'].toLowerCase()
       form['email'] = form['email'].toLowerCase()
-      form['password'] = await hash(req.body['password'], saltRounds)
+      form['password'] = await hash(form['password'], saltRounds)
 
       return await users.insertOne(form)
     }
 
     async matchingPassword(username, password) {
-      await client.connect()
+        try {
+            await client.connect()
 
-      const hashPassword = await client.db(MONGODB_DB).collection('users').findOne({username: username})
+            const user = await users.findOne({username: username})
 
-      console.log(hashPassword)
+            if (!user) return false
 
-      return await compare(password, hashPassword)
+            const hashPassword = user.password
+
+            return await compare(password, hashPassword)
+        } catch (e) {
+            console.log(e)
+        }
     }
 }
