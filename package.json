@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
-    "bootstrap": "^5.0.0-beta3",
+    "bootstrap": "^5.1.0",
     "express-session": "^1.17.2",
     "mongodb": "^4.0.1",
     "next": "11.0.1",
