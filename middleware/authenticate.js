@@ -1,49 +1,56 @@
-import passport from 'passport'
-import { Strategy } from 'passport-local'
 import nextConnect from 'next-connect'
-import { middleware as dbConnect } from './database.js'
-import { compare } from 'bcrypt'
+import passport from 'passport'
+import Local from 'passport-local'
+import UserDataModel from '../models/UserDataModel'
+import session from 'express-session'
+import sessionFileStore from 'session-file-store'
+import flash from 'connect-flash'
 
-const middleware = nextConnect()
+const handler = nextConnect()
+const sessionCookie = 'calendar.sid'
+const Users = new UserDataModel()
+const FileStore = sessionFileStore(session)
 
-// Express Session 
+handler.use(session({
+    store: new FileStore({ path: 'sessions' }),
+    secret: 'some random thingy',
+    resave: true,
+    saveUninitialized: true, 
+    name: sessionCookie
+}))
 
-middleware.use(passport.initialize())
-middleware.use(dbConnect)
-// middleware.use(passport.session())
+handler.use(passport.initialize())
+handler.use(passport.session())
+handler.use(flash())
 
-const LocalStrategy = Strategy
+passport.use(new Local.Strategy(
+    async (username, password, done) => {
+        try {
+            const userFound = await Users.findUser(username)
 
-const authenticate = (handler) => {
-    return async (req, res) => {
-        const db = req.db
+            if (!userFound) return done(null, false, {message: 'No User'})
 
-        passport.use(new LocalStrategy(
-            async (username, password, done) => {
-                try {
-                    const userFound = await db.findOne({username: username})
+            const passwordFound = await Users.matchingPassword(username, password)
 
-                    if (!userFound) return done(null, false, {message: 'No User'})
-                    
-                    const hash = userFound.password
-
-                    const passwordFound = await compare(password, hash)
-
-                    if (!passwordFound) return done(null, false, {message: 'Incorrect password'})
-                    return done (null, userFound)
-                } catch (e) {
-                    return done(e)
-                }
-            }
-        ))
-
-        passport.authenticate('local',  {
-            successRedirect: '/',
-            failureRedirect: 'login',
-        })
-
-        return handler(req, res)
+            if (!passwordFound) return done(null, false, {message: 'Incorrect password'})
+            return done(null, userFound)
+        } catch (e) {
+            return done(e)
+        }
     }
-}
+))
 
-export default authenticate
+passport.serializeUser((user, done) => {
+    try {
+        done(null, user.username)
+    } catch (e) { done(e) }
+})
+  
+passport.deserializeUser(async (username, done) => {
+    try {
+        var user = await Users.findUser(username)
+        done(null, user)
+    } catch (e) { done(e) }
+})
+
+export default handler
