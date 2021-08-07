@@ -15,8 +15,6 @@ passport.use(new Local.Strategy(
 
             if (!userFound) return done(null, false, {message: 'No User'})
 
-            console.log(username)
-            
             const passwordFound = Users.matchingPassword(username, password)
 
             if (!passwordFound) return done(null, false, {message: 'Incorrect password'})
