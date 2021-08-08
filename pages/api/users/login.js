@@ -1,21 +1,21 @@
 import nextConnect from 'next-connect'
-import passport from 'passport'
-import { default as authenticate } from '../../../middleware/authenticate'
+import { default as authenticate, passportAuthenticate } from '../../../middleware/authenticate'
 
 const handler = nextConnect()
 handler.use(authenticate)
 
-// Login Pop Up Message,
-// Either through failureFlash or statusCode 400 with a given message.
-// React Router? or set up a gateway server and/or reverse proxy that deals with what's handled
-handler.post(passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login',
-    failureFlash: true 
-}))
-// , (req, res) => {
-//     res.statusCode = 200
-//     res.json({'message': 'logged in'})
-// })
+const auth = (req, res, next) => {
+    if (req.user) next()
+    else res.status(400).json({'message': 'GO BACK TO LOGIN FROM WHENCE YOU CAME!!'})
+}
 
+handler.post((req, res) => {
+    passportAuthenticate(req, res)
+})
+
+handler.get(auth, (req, res) => {
+    res.status(200).end('OK')
+})
+
+handler.post()
 export default handler
