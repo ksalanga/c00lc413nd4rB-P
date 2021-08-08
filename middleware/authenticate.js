@@ -4,10 +4,10 @@ import Local from 'passport-local'
 import UserDataModel from '../models/UserDataModel'
 import session from 'express-session'
 import sessionFileStore from 'session-file-store'
-import flash from 'connect-flash'
+import next from 'next'
 
 const handler = nextConnect()
-const sessionCookie = 'calendar.sid'
+export const sessionCookie = 'calendar.sid'
 const Users = new UserDataModel()
 const FileStore = sessionFileStore(session)
 
@@ -21,7 +21,6 @@ handler.use(session({
 
 handler.use(passport.initialize())
 handler.use(passport.session())
-handler.use(flash())
 
 passport.use(new Local.Strategy(
     async (username, password, done) => {
@@ -52,5 +51,13 @@ passport.deserializeUser(async (username, done) => {
         done(null, user)
     } catch (e) { done(e) }
 })
+
+export const passportAuthenticate = (req, res) => {
+    passport.authenticate('local', function (err, user, info) {
+        if (err) return res.status(401).json(err)
+        if (user) res.status(200).json({'message': 'logged in'})
+        else res.status(401).json({'message': info.message})
+    })(req, res, next)
+}
 
 export default handler
