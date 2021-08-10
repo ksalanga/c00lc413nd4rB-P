@@ -7,7 +7,6 @@ handler.use(authenticationMiddleware)
 handler.use(passport)
 
 const auth = (req, res, next) => {
-    console.log(req.session.cookie)
     if (req.isAuthenticated()) next()
     else res.status(400).json({'message': 'Not Authenticated.'})
 }
