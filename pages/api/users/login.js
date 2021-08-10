@@ -5,8 +5,8 @@ const handler = nextConnect()
 handler.use(authenticate)
 
 const auth = (req, res, next) => {
-    if (req.user) next()
-    else res.status(400).json({'message': 'GO BACK TO LOGIN FROM WHENCE YOU CAME!!'})
+    if (req.isAuthenticated()) next()
+    else res.status(400).json({'message': 'Not Authenticated.'})
 }
 
 handler.post((req, res) => {
