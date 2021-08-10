@@ -11,9 +11,11 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "bootstrap": "^5.1.0",
+    "connect-mongo": "^4.4.1",
+    "cookie": "^0.4.1",
+    "express-session": "^1.17.2",
     "mongodb": "^4.0.1",
     "next": "11.0.1",
-    "next-auth": "^3.27.3",
     "next-connect": "^0.10.1",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
