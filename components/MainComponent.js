@@ -33,7 +33,7 @@ class MainComponent extends React.Component {
     render() {
       return (
         <>
-          <h1 className={styles.centered}>Cool Calendar B-P 📅</h1>
+          <h2 className={styles.centered}>Cool Calendar B-P 📅</h2>
           <div className={styles.mainContent}>
             <CalendarForm liveEvents={this.state.liveEvents} myEvents={this.state.myEvents}/>
             <LiveEvents liveEvents={this.state.liveEvents} myEvents={this.state.myEvents}/>
