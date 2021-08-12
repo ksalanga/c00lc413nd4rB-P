@@ -1,8 +1,8 @@
 import Head from 'next/head'
 import MainComponent from '../components/MainComponent'
-import Image from 'next/image'
 import React from 'react'
-import styles from '../styles/Home.module.css'
+import authenticate from '../middleware/authenticate'
+import nextConnect from 'next-connect'
 
 export default function Home() {
   return (
@@ -13,4 +13,15 @@ export default function Home() {
       <MainComponent />
     </>
   )
+}
+
+export async function getServerSideProps(context) {
+  // get ServerSideProps context is not recognizing the authenticated from the server session.
+  // try to run express handler but that doesn't work either
+  const handler = nextConnect()
+  handler.use(authenticate)
+
+  return {
+    props: {}
+  }
 }
