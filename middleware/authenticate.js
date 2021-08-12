@@ -16,7 +16,7 @@ handler.use(session({
 }))
 
 export const checkAuthentication = (req, res, next) => {
-    if (req.isAuthenticated()) next()
+    if (req.session?.passport?.user) next()
     else res.status(400).json({'message': 'Not Authenticated.'})
 }
 
