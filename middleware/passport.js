@@ -25,7 +25,7 @@ passport.use(new LocalStrategy(
         try {
             const userFound = await Users.findUser(username)
 
-            if (!userFound) return done(null, false, {message: 'No User'})
+            if (!userFound) return done(null, false, {message: 'User does not exist'})
 
             const passwordFound = await Users.matchingPassword(username, password)
 
