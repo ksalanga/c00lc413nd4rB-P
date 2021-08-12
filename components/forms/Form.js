@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import MultiCalendar from './MultiCalendar'
+import MultiCalendar from '../MultiCalendar'
 
 function Form(props) {
     const [minDate, setMinDate] = useState("")

@@ -1,10 +1,3 @@
-
-// Plan
-// SWR React Hook for Fetching Data
-// Either continue with MongoDB or use the Prisma ORM which is a bit simpler when dealing with Next.JS
-// Password Hash + Salt function needed to post to database
-// User ID Token generated for each session in cookies
-
 export default function LoginForm() {
     return (
         <>
