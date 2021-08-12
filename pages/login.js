@@ -1,10 +1,13 @@
 import Head from 'next/head'
 import 'bootstrap/dist/css/bootstrap.css'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 
 function Login() {
+  const router = useRouter()
   const [username, setUserName] = useState('')
   const [password, setPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const checkSubmission = async () => {
     if (username === '' || password === '') return
@@ -22,7 +25,12 @@ function Login() {
       body: JSON.stringify(payload)
     })
 
-    console.log(response)
+    if (response.ok) {
+      router.push('/')
+    } else {
+      const message = await response.json()
+      setErrorMessage(message.message)
+    }
   }
 
   return (
@@ -32,6 +40,7 @@ function Login() {
         <title>Login</title>
       </Head>
       <h1>LOGIN</h1>
+      {errorMessage !== '' && <div>{errorMessage}</div>}
       <form onSubmit={(e) => {
         e.preventDefault()
         checkSubmission()
