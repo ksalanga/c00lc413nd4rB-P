@@ -1,11 +1,12 @@
-import SignupForm from '../components/SignupForm.js'
-
+import SignupForm from '../components/forms/SignupForm.js'
+import Navbar from '../components/nav/Navbar.js'
 
 export default function Signup() { 
     return (
         <>
-        <h1>Signup</h1>
-        <SignupForm />
+        <Navbar />
+        <h1 style={{textAlign: "center"}}>Signup</h1>
+        <div style={{textAlign: "center"}}><SignupForm /></div>
         </>
     )
 }

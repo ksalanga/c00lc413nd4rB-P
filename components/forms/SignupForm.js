@@ -52,14 +52,18 @@ export default function SignupForm() {
             e.preventDefault()
             verify()
         }}>
-            Username <input type="text" onChange={(e) => setForm({...form, ['username']: e.target.value})}/>
+            <div>Username</div>
+            <input type="text" onChange={(e) => setForm({...form, ['username']: e.target.value})}/>
             <br></br>
+            <div>Email</div>
+            <input type="email" onChange={(e) => setForm({...form, ['email']: e.target.value})}/>
             <br></br>
-            Email <input type="email" onChange={(e) => setForm({...form, ['email']: e.target.value})}/>
+            <div>Password</div>
+            <input type={textOrPass} className="password" onChange={(e) => setForm({...form, ['password']: e.target.value})}/>
             <br></br>
+            <div>Re-enter password</div>
+            <input type={textOrPass} className="password" onChange={(e) => setForm({...form, ['repassword']: e.target.value})}/>
             <br></br>
-            Password <input type={textOrPass} className="password" onChange={(e) => setForm({...form, ['password']: e.target.value})}/>
-            Re-enter password <input type={textOrPass} className="password" onChange={(e) => setForm({...form, ['repassword']: e.target.value})}/>
             <button type="submit">Submit</button>
         </form>
         <button onClick={(e) => { e.preventDefault()
