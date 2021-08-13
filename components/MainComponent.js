@@ -1,8 +1,6 @@
 import React from 'react'
 import styles from '../styles/Home.module.css'
 import CalendarForm from './forms/CalendarForm.js'
-import Profile from '../utils/user'
-import Link from 'next/link'
 import Navbar from './nav/Navbar'
 
 function LiveEvents(props) {
@@ -37,9 +35,6 @@ class MainComponent extends React.Component {
       return (
         <>
           <Navbar />
-          {/* <Profile />
-          <Link href={'/login'}>login</Link>
-          <h3 className={styles.centered}>Cool Calendar B-P 📅</h3> */}
           <div className={styles.mainContent}>
             <CalendarForm liveEvents={this.state.liveEvents} myEvents={this.state.myEvents}/>
             <LiveEvents liveEvents={this.state.liveEvents} myEvents={this.state.myEvents}/>
