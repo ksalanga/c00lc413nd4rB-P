@@ -6,7 +6,7 @@
   display: grid;
   margin: 5%;
   margin-top: 2%;
-  height: 73vh;
+  height: 70vh;
   grid-template-columns: 5fr 1fr;
   grid-template-rows: 5fr 1fr;
 }
@@ -18,7 +18,7 @@
   justify-content: space-evenly;
   grid-column-start: 1;
   grid-row-start: 1;
-  border: solid 1px;
+  /* border: solid 1px; */
 }
 
 .liveEvents {
@@ -35,11 +35,14 @@
 }
 
 .calendarType {
-  border: solid 1px;
-  display: inline-block;
+  border-radius: 10px;
+  box-shadow: 2px 2px 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   flex-shrink: 5;
   height: 50%;
   width: 300px;
-  background-color: gray;
+  background-color: #D3D3D3;
   cursor: pointer;
 }
