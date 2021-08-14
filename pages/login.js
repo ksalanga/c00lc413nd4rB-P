@@ -11,7 +11,7 @@ function Login() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Login</title>
       </Head>
-      <Navbar login={true}/>
+      <Navbar loginPage={true}></Navbar>
       <LoginForm />
     </>
   )
