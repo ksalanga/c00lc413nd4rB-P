@@ -26,10 +26,11 @@ export default function LoginForm() {
         })
 
         if (response.ok) {
-        router.push('/')
+            await response.json()
+            router.push('/')
         } else {
-        const message = await response.json()
-        setErrorMessage(message.message)
+            const message = await response.json()
+            setErrorMessage(message.message)
         }
     }
 
