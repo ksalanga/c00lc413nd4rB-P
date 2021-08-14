@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 export default function SignupForm() {
+    const router = useRouter()
     const [form, setForm] = useState({username: '', email: '', password: '', repassword: ''})
     const [validUserName, setValidUserName] = useState(null)
     const [validEmail, setValidEmail] = useState(null)
@@ -42,6 +44,7 @@ export default function SignupForm() {
                 body: JSON.stringify(submission)
             }).then(response => response.json())
             .then(data => setServerMessage(data.message))
+            router.push('/')
         }
     }
 
