@@ -13,23 +13,22 @@ export default function LoginForm() {
         if (username === '' || password === '') return
 
         const payload = {
-        username: username,
-        password: password
+            username: username,
+            password: password
         }
 
         const response = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         })
 
+        const message = await response.json()
         if (response.ok) {
-            await response.json()
             router.push('/')
         } else {
-            const message = await response.json()
             setErrorMessage(message.message)
         }
     }
@@ -37,7 +36,7 @@ export default function LoginForm() {
     return(
         <>
         <h1 className={styles.center}>LOGIN</h1>
-        {errorMessage !== '' && <div>{errorMessage}</div>}
+        {errorMessage !== '' && <div className={styles.center}><b>{errorMessage}</b></div>}
         <form className={styles.center} onSubmit={(e) => {
             e.preventDefault()
             checkSubmission()
