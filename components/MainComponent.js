@@ -1,7 +1,6 @@
 import React from 'react'
 import styles from '../styles/Home.module.css'
 import CalendarForm from './forms/CalendarForm.js'
-import Navbar from './nav/Navbar'
 
 function LiveEvents(props) {
     if (props.liveEvents) {
@@ -34,7 +33,6 @@ class MainComponent extends React.Component {
     render() {
       return (
         <>
-          <Navbar />
           <div className={styles.mainContent}>
             <CalendarForm liveEvents={this.state.liveEvents} myEvents={this.state.myEvents}/>
             <LiveEvents liveEvents={this.state.liveEvents} myEvents={this.state.myEvents}/>
