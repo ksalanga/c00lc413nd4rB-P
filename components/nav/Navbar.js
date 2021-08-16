@@ -6,7 +6,7 @@ import Image from 'next/image'
 import defaultPic from '../../public/default.png'
 import styles from '../../styles/navbar.module.css'
 
-function Navbar({ user }) {
+function Navbar({ user, loginPage }) {
     const router = useRouter()
     const userLoggedIn = useState(null)
 
