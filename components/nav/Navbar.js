@@ -1,12 +1,14 @@
 import { default as loggedInUser, logOutUser } from "../../utils/user"
 import Head from "next/head"
 import { useRouter } from "next/router"
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import defaultPic from '../../public/default.png'
 import styles from '../../styles/navbar.module.css'
 
-export default function Navbar(props) {
+function Navbar({ user }) {
     const router = useRouter()
+    const userLoggedIn = useState(null)
 
     const logOut = async () => {
         const response = await logOutUser()
@@ -16,12 +18,23 @@ export default function Navbar(props) {
         }
     }
 
-    const { user, isLoading, isError } = loggedInUser()
+    if (user) {
+        var rightSideItem = 
+        <li className="nav-item dropdown">
+            <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown"><Image src={defaultPic} width="35%" height="35%" className={styles.profilePic} alt='profilePicture' /></a>
+            <div className="dropdown-menu dropdown-menu-end">
+                <a className="dropdown-item"><b>{user}</b></a>
+                <a href="#" className="dropdown-item">My Events</a>
+                <a href="#" className="dropdown-item">Edit Profile</a>
+                <div className="dropdown-divider"></div>
+                <a href="#" onClick={logOut} className="dropdown-item">Logout</a>
+            </div>
+        </li>
+    } else {
+        var rightSideItem = <a className="nav-link" href="/login">Login</a>
+    }
 
-    if (user?.user !== undefined) {var loggedIn = true}
-    else {var loggedIn = false}
-
-    const loginItem = (isLoading || props.loginPage || loggedIn) ? null : <a className="nav-link" href="/login">Login</a>
+    useEffect(() => {}, [userLoggedIn])
 
     return (
         <>
@@ -39,23 +52,11 @@ export default function Navbar(props) {
                 </ul>
             </div>
             <ul className="nav navbar-nav ml-auto">
-                <li className="nav-item">
-                    {loginItem}
-                </li>
-                {loggedIn &&
-                <li className="nav-item dropdown">
-                {/* {user?.user} */}
-                    <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown"><Image src={defaultPic} width="35%" height="35%" className={styles.profilePic} alt='profilePicture' /></a>
-                    <div className="dropdown-menu dropdown-menu-end">
-                        <a className="dropdown-item"><b>{user?.user}</b></a>
-                        <a href="#" className="dropdown-item">My Events</a>
-                        <a href="#" className="dropdown-item">Edit Profile</a>
-                        <div className="dropdown-divider"></div>
-                        <a href="#" onClick={logOut} className="dropdown-item">Logout</a>
-                    </div>
-                </li>}
+                {rightSideItem}
             </ul>
         </nav>
         </>
     )
 }
+
+export default Navbar
