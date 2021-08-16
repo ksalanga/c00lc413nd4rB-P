@@ -36,15 +36,20 @@ export default function SignupForm() {
 
         if (isValidUserName && isValidPassword && isValidEmail && isMatching) {
             const submission = {username: form['username'], email: form['email'], password: form['password']}
-            await fetch('/api/users/signup', {
+            const response = await fetch('/api/users/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(submission)
-            }).then(response => response.json())
-            .then(data => setServerMessage(data.message))
-            router.push('/')
+            })
+
+            const message = await response.json()
+            if (response.ok) {
+                router.push('/')
+            } else {
+                setServerMessage(message.message)
+            }
         }
     }
 
