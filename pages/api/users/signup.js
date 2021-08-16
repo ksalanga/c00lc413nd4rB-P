@@ -51,14 +51,14 @@ const errorHandling = async (req, res) => {
 }
 
 handler.post(async (req, res) => {
-    errorHandling(req, res).catch(error => {
-        res.json({'message' : error})
+    try {
+        await errorHandling(req, res)
+        await Users.createUser(req.body)
+        res.status(200).end(JSON.stringify({'message': 'New User Created.'}))
+    } catch(error) {
+        res.end(JSON.stringify({'message' : error}))
         return
-    })
- 
-    await Users.createUser(req.body)
-    res.statusCode = 200
-    res.json({'message': 'New User Created.'})
+    }
 })
 
 export default handler
