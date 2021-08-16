@@ -9,15 +9,18 @@ const handler = nextConnect()
 handler.use(session({
     store: new MongoStore({ mongoUrl: process.env.MONGODB_URI}),
     secret: 'some random thingy',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     name: sessionCookie,
-    cookie: { maxAge: dayExpiration }
+    cookie: { maxAge: dayExpiration,
+    secure: process.env.NODE_ENV === "development" ? false : true,
+    httpOnly: false
+}
 }))
 
 export const checkAuthentication = (req, res, next) => {
     if (req.session?.passport?.user) next()
-    else res.status(400).json({'message': 'Not Authenticated.'})
+    else res.status(400).send(JSON.stringify({'message': 'Not Authenticated.'}))
 }
 
 export default handler
