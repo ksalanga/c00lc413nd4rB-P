@@ -23,7 +23,7 @@ function Navbar({ user, loginPage }) {
         <li className="nav-item dropdown">
             <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown"><Image src={defaultPic} width="35%" height="35%" className={styles.profilePic} alt='profilePicture' /></a>
             <div className="dropdown-menu dropdown-menu-end">
-                <a className="dropdown-item"><b>{user}</b></a>
+                <a className="dropdown-item"><b>{user.username}</b></a>
                 <a href="#" className="dropdown-item">My Events</a>
                 <a href="#" className="dropdown-item">Edit Profile</a>
                 <div className="dropdown-divider"></div>
@@ -50,10 +50,10 @@ function Navbar({ user, loginPage }) {
                         <a className="nav-link" href="#">Live Events</a>
                     </li>
                 </ul>
-            </div>
+            </div> {!loginPage &&
             <ul className="nav navbar-nav ml-auto">
                 {rightSideItem}
-            </ul>
+            </ul>}
         </nav>
         </>
     )
