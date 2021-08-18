@@ -33,7 +33,9 @@ const errorHandling = async (req, res) => {
 
     if (!validateUserName || !validateEmail || !validatePassword) {
         res.statusCode = 400
-        throw `Error formatting username, email, password. UserName correct: ${validateUserName}, Email correct: ${validateEmail}, Password correct: ${validatePassword}`
+        throw `Format Error: Username ${validateUserName ? '✔️': '❌'},
+         Email ${validateEmail ? '✔️' : '❌'}, 
+         Password ${validatePassword ? '✔️' : '❌'}`
     }
 
     let checkUser = await Users.findUser(req.body.username)
@@ -54,9 +56,9 @@ handler.post(async (req, res) => {
     try {
         await errorHandling(req, res)
         await Users.createUser(req.body)
-        res.status(200).end(JSON.stringify({'message': 'New User Created.'}))
+        res.status(200).end('New User Created.')
     } catch(error) {
-        res.end(JSON.stringify({'message' : error}))
+        res.end(error)
         return
     }
 })
