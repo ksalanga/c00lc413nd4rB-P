@@ -34,6 +34,7 @@ export default class UserDataModel {
       form['username'] = form['username'].toLowerCase()
       form['email'] = form['email'].toLowerCase()
       form['password'] = await hash(form['password'], saltRounds)
+      form['calendars'] = null
 
       return await users.insertOne(form)
     }
