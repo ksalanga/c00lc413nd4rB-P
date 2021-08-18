@@ -1,15 +1,14 @@
-import nextConnect from 'next-connect'
-import {default as authenticateMiddleware, sessionCookie} from '../../../middleware/authenticate'
+import { withIronSession } from 'next-iron-session'
 
-const handler = nextConnect()
-handler.use(authenticateMiddleware)
+function handler(req, res, session) {
+    req.session?.destroy()
+    res.send('Logged out')
+}
 
-handler.get(async (req, res) => {
-    await req.session.destroy()
-    await req.logOut()
-    // Setting Header deletes cookie on the client side
-    res.setHeader('Set-Cookie', `${sessionCookie}=${req.cookies[sessionCookie]}; Path=/; HttpOnly; max-age=0;`)
-    res.status(200).end(JSON.stringify({'message' : 'logged out'}))
+export default withIronSession(handler, {
+    password: process.env.ironSessionPassword,
+    cookieName: 'calendar.sid',
+    cookieOptions: {
+        secure: process.env.NODE_ENV === "production",
+    },
 })
-
-export default handler

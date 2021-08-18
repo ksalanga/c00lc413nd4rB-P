@@ -1,13 +1,36 @@
-import nextConnect from 'next-connect'
-import { default as authenticationMiddleware } from '../../../middleware/authenticate'
-import { default as passport, authenticate } from '../../../middleware/passport'
+import { withIronSession } from 'next-iron-session'
+import UserDataModel from '../../../models/UserDataModel'
 
-const handler = nextConnect()
-handler.use(authenticationMiddleware)
-handler.use(passport)
+async function handler(req, res) {
+    const UDM = new UserDataModel()
+    const username = await req.body.username.toLowerCase()
+    const password = await req.body.password
 
-handler.post((req, res) => {
-    authenticate(req, res)
+    const userFound = await UDM.findUser(username)
+    if (!userFound) {
+        res.status(401).send('No User Found')
+        return
+    }
+
+    const passwordFound = await UDM.matchingPassword(username, password)
+    if (!passwordFound) {
+        res.status(401).send('Incorrect Password')
+        return
+    }
+
+    req.session.set('user', {
+        id: userFound['_id'].toString(),
+        username: userFound['username'],
+    })
+
+    await req.session.save()
+    res.status(200).send('Logged in')
+}
+
+export default withIronSession(handler, {
+    password: process.env.ironSessionPassword,
+    cookieName: "calendar.sid",
+    cookieOptions: {
+      secure: process.env.NODE_ENV === "production",
+    },
 })
-
-export default handler
