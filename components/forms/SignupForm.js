@@ -4,52 +4,35 @@ import { useRouter } from 'next/router'
 export default function SignupForm() {
     const router = useRouter()
     const [form, setForm] = useState({username: '', email: '', password: '', repassword: ''})
-    const [validUserName, setValidUserName] = useState(null)
-    const [validEmail, setValidEmail] = useState(null)
-    const [validPassword, setValidPassword] = useState(null)
-    const [matchingPassword, setMatching] = useState(null)
     const [textOrPass, setTextOrPass] = useState('password')
     const [serverMessage, setServerMessage] = useState('')
 
-    useEffect(() => {
-    }, [validUserName, validEmail, validPassword, matchingPassword])
+    useEffect(() => {}, [serverMessage])
 
     const verify = async () => {
         if (form['username'] === '' || form['password'] === '' || form['email'] === '') return
 
-        const isValidUserName = /^[a-z0-9]{3,16}$/.test(form['username'])
-        const isValidEmail = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/.test(form['email'])
-        const isValidPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(form['password'])
         const isMatching = form['password'] === form['repassword']
 
-        if (isValidUserName) setValidUserName(true)
-        else setValidUserName(false)
+        if (!isMatching) {
+            setServerMessage('Passwords must match')
+            return
+        }
 
-        if (isValidEmail) setValidEmail(true)
-        else setValidEmail(false)
+        const submission = {username: form['username'], email: form['email'], password: form['password']}
+        const response = await fetch('/api/users/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(submission)
+        })
 
-        if (isValidPassword) setValidPassword(true)
-        else setValidPassword(false)
-
-        if (isMatching) setMatching(true)
-        else setMatching(false)
-
-        if (isValidUserName && isValidPassword && isValidEmail && isMatching) {
-            const submission = {username: form['username'], email: form['email'], password: form['password']}
-            const response = await fetch('/api/users/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(submission)
-            })
-
-            const message = await response.json()
-            if (response.ok) {
-                router.push('/')
-            } else {
-                setServerMessage(message.message)
-            }
+        const message = await response.text()
+        if (response.ok) {
+            router.push('/')
+        } else {
+            setServerMessage(message)
         }
     }
 
@@ -76,10 +59,6 @@ export default function SignupForm() {
         </form>
         <button onClick={(e) => { e.preventDefault()
             setTextOrPass(textOrPass === 'password' ? 'text' : 'password')}}>👁️</button>
-        {validUserName === false && <div><b>invalid username</b></div>}
-        {validEmail === false && <div><b>invalid email</b></div>}
-        {validPassword === false && <div><b>invalid password</b></div>}
-        {matchingPassword === false && <div><b>passwords must match</b></div>}
         </>
     )
 }
