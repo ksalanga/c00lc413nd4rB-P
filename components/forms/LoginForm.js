@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import styles from '../../styles/login.module.css'
@@ -9,6 +9,8 @@ export default function LoginForm() {
     const [password, setPassword] = useState('')
     const [errorMessage, setErrorMessage] = useState('')
 
+    useEffect(() => {}, [errorMessage])
+    
     const checkSubmission = async () => {
         if (username === '' || password === '') return
 
@@ -25,11 +27,12 @@ export default function LoginForm() {
             body: JSON.stringify(payload)
         })
 
-        const message = await response.json()
+        const message = await response.text()
+
         if (response.ok) {
             router.push('/')
         } else {
-            setErrorMessage(message.message)
+            setErrorMessage(message)
         }
     }
 
