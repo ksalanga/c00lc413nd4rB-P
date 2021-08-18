@@ -11,12 +11,10 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "bootstrap": "^5.1.0",
-    "connect-mongo": "^4.4.1",
-    "express-session": "^1.17.2",
     "mongodb": "^4.0.1",
     "next": "^11.1.0",
     "next-connect": "^0.10.1",
-    "passport": "^0.4.1",
+    "next-iron-session": "^4.2.0",
     "passport-local": "^1.0.0",
     "react": "17.0.2",
     "react-calendar": "^3.4.0",
