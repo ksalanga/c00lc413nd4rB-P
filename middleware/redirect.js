@@ -7,7 +7,6 @@ export default async function redirect(req, res) {
     try {
         await handler.run(req, res)
         var user = req.session?.get('user')
-        console.log(user)
         if (user !== {} && user !== undefined) {
             return {
                 redirect: {
