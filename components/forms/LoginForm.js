@@ -8,6 +8,8 @@ export default function LoginForm() {
     const [username, setUserName] = useState('')
     const [password, setPassword] = useState('')
     const [errorMessage, setErrorMessage] = useState('')
+    const [textOrPass, setTextOrPass] = useState('password')
+
 
     useEffect(() => {}, [errorMessage])
     
@@ -48,10 +50,13 @@ export default function LoginForm() {
             <input type='text' onChange={(e) => setUserName(e.target.value)}></input>
             <br></br>
             <div>Password</div>
-            <input type='password' onChange={(e) => setPassword(e.target.value)}></input>
+            <input type={textOrPass} onChange={(e) => setPassword(e.target.value)}></input>
             <br></br>
             <br></br>
             <button type='submit'>Submit</button>
+            <button onClick={(e) => { e.preventDefault()
+            setTextOrPass(textOrPass === 'password' ? 'text' : 'password')}}>👁️</button>
+
         </form>
         <br></br>
         <div className={styles.center}>Don't Have an Account?</div>
