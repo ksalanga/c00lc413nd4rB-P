@@ -4,7 +4,7 @@ import { useRouter } from "next/router"
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import defaultPic from '../../public/default.png'
-import styles from '../../styles/navbar.module.css'
+import styles from '../../styles/profilepicture.module.css'
 
 function Navbar({ user, loginPage }) {
     const router = useRouter()
@@ -25,7 +25,7 @@ function Navbar({ user, loginPage }) {
             <div className="dropdown-menu dropdown-menu-end">
                 <a className="dropdown-item"><b>{user.username}</b></a>
                 <a href="#" className="dropdown-item">My Events</a>
-                <a href="#" className="dropdown-item">Edit Profile</a>
+                <a href="/profile" className="dropdown-item">Edit Profile</a>
                 <div className="dropdown-divider"></div>
                 <a href="#" onClick={logOut} className="dropdown-item">Logout</a>
             </div>
