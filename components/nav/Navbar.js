@@ -11,7 +11,7 @@ function Navbar({ user, loginPage }) {
     const userLoggedIn = useState(null)
 
     const logOut = async () => {
-        const response = await logOutUser()
+        const response = await fetch('/api/users/logout', {method: 'GET'})
 
         if (response.ok) {
             router.reload('/')
