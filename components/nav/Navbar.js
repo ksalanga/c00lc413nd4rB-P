@@ -1,4 +1,4 @@
-import { default as loggedInUser, logOutUser } from "../../utils/user"
+import { default as logOutUser } from "../../utils/user"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState, useEffect } from 'react'
