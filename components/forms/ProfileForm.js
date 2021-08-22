@@ -4,7 +4,7 @@ import styles from '../../styles/profilepicture.module.css'
 import { useState } from 'react'
 
 export default function profileForm(props) {
-    const [form, setForm] = useState({user: props.user.id, username: '', newPassword: '', passwordConfirm: ''})
+    const [form, setForm] = useState({user: props.user.username, newUsername: '', newPassword: '', passwordConfirm: ''})
     const [file, setFile] = useState(null)
     const [fileURL, setFileURL] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
@@ -13,10 +13,14 @@ export default function profileForm(props) {
         // On a multipart-form/data submission, do not include the Content-Type for multer since formData as a body forces that.
         var formSubmission = new FormData()
 
+        // Multer might not have fully parsed the req.body if the file is being used first. 
+        // Therefore, try to put the body first in formData so
+        // all of those values are handled with before the main file is dealt with.
         for (var key in form) {
             formSubmission.append(key, form[key])
         }
-        formSubmission.append('image', file)
+
+        if (file != null) formSubmission.append('image', file)
         
         const response = await fetch('/api/users/edit', {
             method: 'POST',
@@ -32,17 +36,6 @@ export default function profileForm(props) {
         const file = event.target.files[0]
 
         if (!file) return
-
-        // Receive errors from the API via multer
-        if (file.type !== "image/png" && file.type !== "image/jpeg") {
-            setErrorMessage('Wrong File Type')
-            return
-        }
-
-        if (file.size > (5 * (10**5))) {
-            setErrorMessage('Image is too large')
-            return
-        }
 
         setFile(file)
         setFileURL(URL.createObjectURL(file))
@@ -76,6 +69,10 @@ export default function profileForm(props) {
             <input type="password" onChange={(e) => setForm({...form, ['newPassword']: e.target.value})}></input>
             <div><b>Confirm Password (Required to Confirm Edit)</b></div>
             <input type="password" onChange={(e) => setForm({...form, ['passwordConfirm']: e.target.value})}></input>
+            <br></br>
+            <br></br>
+            {/* TODO Delete Account Button */}
+            <button>Delete User</button>
             <br></br>
             {file &&
             <>
