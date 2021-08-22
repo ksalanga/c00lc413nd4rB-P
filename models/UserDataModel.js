@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb'
+import { MongoClient, ObjectId } from 'mongodb'
 import { hash, compare } from 'bcrypt'
 
 const MONGODB_URI = process.env.MONGODB_URI
@@ -35,6 +35,7 @@ export default class UserDataModel {
       form['email'] = form['email'].toLowerCase()
       form['password'] = await hash(form['password'], saltRounds)
       form['calendars'] = null
+      form['profilePicture'] = 'default'
 
       return await users.insertOne(form)
     }
@@ -52,6 +53,16 @@ export default class UserDataModel {
           return await compare(password, hashPassword)
       } catch (e) {
           console.log(e)
+      }
+    }
+
+    async editProfilePicture(username, url) {
+      try {
+        await client.connect()
+
+        return await users.updateOne({username: username}, {$set : {'profilePicture' : url}})
+      } catch (e) {
+        console.log(e)
       }
     }
 }
