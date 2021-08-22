@@ -43,7 +43,7 @@ handler.post(async (req, res) => {
         if (!UDM.matchingPassword(req.body.user, req.body.passwordConfirm)) return res.status(406).send('Must have correct password')
 
         if (req.file !== undefined) {
-            const fileName = req.body.user + '.' + req.file.mimetype.split('/')[1]
+            const fileName = req.body.id + '.' + req.file.mimetype.split('/')[1]
             const file = bucket.file(fileName)
             const blobStream = file.createWriteStream({resumable: false})
 
@@ -56,7 +56,7 @@ handler.post(async (req, res) => {
             .on('error', (error) => {console.log(error)})
             .end(req.file.buffer)
         }
-        
+
         res.status(200).send('OK')
     })
 })

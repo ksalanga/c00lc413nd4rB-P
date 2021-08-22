@@ -4,7 +4,7 @@ import styles from '../../styles/profilepicture.module.css'
 import { useState } from 'react'
 
 export default function profileForm(props) {
-    const [form, setForm] = useState({user: props.user.username, newUsername: '', newPassword: '', passwordConfirm: ''})
+    const [form, setForm] = useState({id: props.user.id, user: props.user.username, newUsername: '', newPassword: '', passwordConfirm: ''})
     const [file, setFile] = useState(null)
     const [fileURL, setFileURL] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
