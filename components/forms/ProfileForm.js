@@ -3,10 +3,11 @@ import defaultPic from '../../public/default.png'
 import styles from '../../styles/profilepicture.module.css'
 import { useState } from 'react'
 
-export default function profileForm(props) {
-    const [form, setForm] = useState({id: props.user.id, user: props.user.username, newUsername: '', newPassword: '', passwordConfirm: ''})
-    const [file, setFile] = useState(null)
+export default function profileForm({ user }) {
+    const [form, setForm] = useState({id: user.id, user: user.username, newUsername: '', newPassword: '', passwordConfirm: ''})
+    const [file, setFile] = useState(user.profilePicture)
     const [fileURL, setFileURL] = useState(null)
+    const [textOrPass, setTextOrPass] = useState('password')
     const [errorMessage, setErrorMessage] = useState(null)
 
     const checkSubmission = async () => {
@@ -30,7 +31,7 @@ export default function profileForm(props) {
         const message = await response.text()
     }
 
-    const profilePicture = props.user.profilePic === undefined ? defaultPic : user.profilePic
+    const profilePicture = user.profilePic === undefined ? defaultPic : user.profilePic
 
     const onFileChange = event => {
         const file = event.target.files[0]
@@ -62,13 +63,13 @@ export default function profileForm(props) {
                 
                 <input id="file-input" type="file" onChange={onFileChange}></input>
             </div>
-            <h3 style={{textAlign: "center"}}>Hello, {props.user.username}</h3>
+            <h3 style={{textAlign: "center"}}>Hello, {user.username}</h3>
             <div>Change Username</div>
             <input type="text" onChange={(e) => setForm({...form, ['username']: e.target.value})}></input>
             <div>Change Password</div>
-            <input type="password" onChange={(e) => setForm({...form, ['newPassword']: e.target.value})}></input>
+            <input type={textOrPass} onChange={(e) => setForm({...form, ['newPassword']: e.target.value})}></input>
             <div><b>Confirm Password (Required to Confirm Edit)</b></div>
-            <input type="password" onChange={(e) => setForm({...form, ['passwordConfirm']: e.target.value})}></input>
+            <input type={textOrPass} onChange={(e) => setForm({...form, ['passwordConfirm']: e.target.value})}></input>
             <br></br>
             <br></br>
             {/* TODO Delete Account Button */}
@@ -84,7 +85,9 @@ export default function profileForm(props) {
             }}>x</button></div>
             </>}
             <br></br>
-            <input type="submit"></input>
+            <button type="submit">Submit</button>
+            <button onClick={(e) => { e.preventDefault()
+            setTextOrPass(textOrPass === 'password' ? 'text' : 'password')}}>👁️</button>
         </form>
         </>
     )
