@@ -21,6 +21,7 @@ async function handler(req, res) {
     req.session.set('user', {
         id: userFound['_id'].toString(),
         username: userFound['username'],
+        profilePicture: userFound['profilePicture']
     })
 
     await req.session.save()
