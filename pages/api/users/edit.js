@@ -36,18 +36,13 @@ const handler = nextConnect({onError})
 handler.post(async (req, res) => {
     const contentType = req.headers['content-type']
 
-    if (contentType === undefined || !(contentType.includes('multipart/form-data'))) {
-        console.log('must be multi man!')
-        return res.status(400).send('Content Type must be multipart/form-data')
-    }
+    if (contentType === undefined || !(contentType.includes('multipart/form-data'))) return res.status(400).send('Content Type must be multipart/form-data')
 
     upload(req, res, async (err) => {
-        if (err) {
-            res.status(406).send(err.message)
-            return
-        }
+        if (err) return res.status(406).send(err.message)
 
         const form = req.body
+
         const undefinedSettings = (form['id'] === undefined 
         || form['user'] === undefined 
         || form['newUsername'] === undefined 
@@ -60,10 +55,7 @@ handler.post(async (req, res) => {
         || typeof(form['newPassword']) !== 'string'
         || typeof(form['passwordConfirm']) !== 'string'
 
-        if (Object.keys(form).length !== 5 || undefinedSettings || improperFormat) {
-            console.log('improper formatting')
-            return res.status(400).send('Form body improperly formatted: must have properties: id, user, newUsername, newPassword, passwordConfirm (case sensitive. all strings)')
-        }
+        if (Object.keys(form).length !== 5 || undefinedSettings || improperFormat) return res.status(400).send('Form body improperly formatted: must have properties: id, user, newUsername, newPassword, passwordConfirm (case sensitive. all strings)')
 
         if (req.file !== undefined) {
             const fileName = form.id + '.' + req.file.mimetype.split('/')[1]
@@ -84,27 +76,16 @@ handler.post(async (req, res) => {
         const validateUserName = /^[a-z0-9]{3,16}$/.test(form.newUsername)
         const validatePassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(form.newPassword)
 
-        if (form.newUsername !== '' && !validateUserName) {
-            console.log('UsernameFormatWrong!')
-            return res.status(406).send('Username Format is incorrect')
-        }
+        if (form.newUsername !== '' && !validateUserName) return res.status(406).send('Username Format is incorrect')
 
-        if (form.newPassword !== '' && !validatePassword) {
-            console.log('PasswordFormatWrong!')
-            return res.status(406).send('Password Format is incorrect')
-        }
+        if (form.newPassword !== '' && !validatePassword) return res.status(406).send('Password Format is incorrect')
 
-        if (!(await UDM.matchingPassword(form.user, form.passwordConfirm))) {
-            console.log('wrong password bud')
-            return res.status(406).send('Must have correct password to edit username or password')
-        }
+        if (!(await UDM.matchingPassword(form.user, form.passwordConfirm))) return res.status(406).send('Must have correct password to edit username or password')
         
-        if (await UDM.findUser(form.newUsername.toLowerCase())) {
-            console.log('username exists bud')
-            return res.status(406).send('Username already exists')
-        }
+        if (await UDM.findUser(form.newUsername.toLowerCase())) return res.status(406).send('Username already exists')
 
         const editSettings = (({newUsername, newPassword}) => ({newUsername, newPassword}))(form)
+
         await UDM.editProfile(form.user.toLowerCase(), editSettings)
 
         res.status(200).send('OK')
