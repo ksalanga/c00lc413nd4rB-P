@@ -35,7 +35,7 @@ export default class UserDataModel {
       form['email'] = form['email'].toLowerCase()
       form['password'] = await hash(form['password'], saltRounds)
       form['calendars'] = null
-      form['profilePicture'] = 'default'
+      form['profilePicture'] = null
 
       return await users.insertOne(form)
     }
@@ -58,17 +58,16 @@ export default class UserDataModel {
 
     async editProfile(username, form) {
       try {
+        const updatedUser = {}
         await client.connect()
-        for (let key in form) {
-          if (form[key] === '') delete form[key]
-        }
 
-        if (form['newPassword']) {
+        if (form['newUsername'] !== '') updatedUser['username'] = form['newUsername']
+        if (form['newPassword'] !== '') {
           const saltRounds = 10
-          form['newPassword'] = await hash(form['newPassword'], saltRounds)
+          updatedUser['password'] = await hash(form['newPassword'], saltRounds)
         }
 
-        return await users.updateOne({username: username}, {$set : form})
+        return await users.updateOne({username: username}, {$set : updatedUser})
       } catch (e) {
         console.log(e)
       }
@@ -79,6 +78,16 @@ export default class UserDataModel {
         await client.connect()
 
         return await users.updateOne({username: username}, {$set : {'profilePicture' : url}})
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
+    async deleteUser(username) {
+      try {
+        await client.connect()
+
+        return await users.deleteOne({username: username})
       } catch (e) {
         console.log(e)
       }
