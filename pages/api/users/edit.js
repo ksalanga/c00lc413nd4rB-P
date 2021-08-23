@@ -34,28 +34,78 @@ const upload = multer({
 const handler = nextConnect({onError})
 
 handler.post(async (req, res) => {
-    upload(req, res, (err) => {
+    const contentType = req.headers['content-type']
+
+    if (contentType === undefined || !(contentType.includes('multipart/form-data'))) {
+        console.log('must be multi man!')
+        return res.status(400).send('Content Type must be multipart/form-data')
+    }
+
+    upload(req, res, async (err) => {
         if (err) {
             res.status(406).send(err.message)
             return
         }
 
-        if (!UDM.matchingPassword(req.body.user, req.body.passwordConfirm)) return res.status(406).send('Must have correct password')
+        const form = req.body
+        const undefinedSettings = (form['id'] === undefined 
+        || form['user'] === undefined 
+        || form['newUsername'] === undefined 
+        || form['newPassword'] === undefined 
+        || form['passwordConfirm'] === undefined)
+
+        const improperFormat = typeof(form['id']) !== 'string'
+        || typeof(form['user']) !== 'string'
+        || typeof(form['newUsername']) !== 'string'
+        || typeof(form['newPassword']) !== 'string'
+        || typeof(form['passwordConfirm']) !== 'string'
+
+        if (Object.keys(form).length !== 5 || undefinedSettings || improperFormat) {
+            console.log('improper formatting')
+            return res.status(400).send('Form body improperly formatted: must have properties: id, user, newUsername, newPassword, passwordConfirm (case sensitive. all strings)')
+        }
 
         if (req.file !== undefined) {
-            const fileName = req.body.id + '.' + req.file.mimetype.split('/')[1]
+            const fileName = form.id + '.' + req.file.mimetype.split('/')[1]
             const file = bucket.file(fileName)
             const blobStream = file.createWriteStream({resumable: false})
 
             // Store in Google Cloud Storage
             blobStream
-            .on('finish', () => {
+            .on('finish', async () => {
                 const imageURL = `https://storage.googleapis.com/${process.env.GCS_BUCKET}/${file.name}`
-                UDM.editProfilePicture(req.body.user, imageURL)
+                await UDM.editProfilePicture(form.user, imageURL)
             })
             .on('error', (error) => {console.log(error)})
             .end(req.file.buffer)
         }
+
+        // Correct username and password format
+        const validateUserName = /^[a-z0-9]{3,16}$/.test(form.newUsername)
+        const validatePassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(form.newPassword)
+
+        if (form.newUsername !== '' && !validateUserName) {
+            console.log('UsernameFormatWrong!')
+            return res.status(406).send('Username Format is incorrect')
+        }
+
+        if (form.newPassword !== '' && !validatePassword) {
+            console.log('PasswordFormatWrong!')
+            return res.status(406).send('Password Format is incorrect')
+        }
+
+        if (!(await UDM.matchingPassword(form.user, form.passwordConfirm))) {
+            console.log('wrong password bud')
+            return res.status(406).send('Must have correct password to edit username or password')
+        }
+        
+        if (await UDM.findUser(form.newUsername.toLowerCase())) {
+            console.log('username exists bud')
+            return res.status(406).send('Username already exists')
+        }
+
+        const editSettings = (({newUsername, newPassword}) => ({newUsername, newPassword}))(form)
+        await UDM.editProfile(form.user.toLowerCase(), editSettings)
 
         res.status(200).send('OK')
     })
