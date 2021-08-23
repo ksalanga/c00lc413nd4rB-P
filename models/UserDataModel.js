@@ -56,6 +56,24 @@ export default class UserDataModel {
       }
     }
 
+    async editProfile(username, form) {
+      try {
+        await client.connect()
+        for (let key in form) {
+          if (form[key] === '') delete form[key]
+        }
+
+        if (form['newPassword']) {
+          const saltRounds = 10
+          form['newPassword'] = await hash(form['newPassword'], saltRounds)
+        }
+
+        return await users.updateOne({username: username}, {$set : form})
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
     async editProfilePicture(username, url) {
       try {
         await client.connect()
