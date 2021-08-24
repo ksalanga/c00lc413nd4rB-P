@@ -5,6 +5,8 @@ import UserDataModel from '../../../models/UserDataModel'
 const UDM = new UserDataModel()
 
 handler.post(async (req, res) => {
+
+    // Also have to delete user on our cloud service.
     const contentType = req.headers['content-type']
 
     if (contentType === undefined || contentType !== 'application/json') return res.status(400).send('Content Type must be application/json')
