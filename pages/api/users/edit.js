@@ -2,6 +2,7 @@ import multer from 'multer'
 import { Storage } from '@google-cloud/storage'
 import nextConnect from 'next-connect'
 import UserDataModel from '../../../models/UserDataModel'
+import { withIronSession } from 'next-iron-session'
 
 const UDM = new UserDataModel()
 const storage = new Storage({
@@ -39,6 +40,7 @@ handler.post(async (req, res) => {
     if (contentType === undefined || !(contentType.includes('multipart/form-data'))) return res.status(400).send('Content Type must be multipart/form-data')
 
     upload(req, res, async (err) => {
+        var user = await req.session?.get('user')
         if (err) return res.status(406).send(err.message)
 
         const form = req.body
@@ -67,6 +69,10 @@ handler.post(async (req, res) => {
             .on('finish', async () => {
                 const imageURL = `https://storage.googleapis.com/${process.env.GCS_BUCKET}/${file.name}`
                 await UDM.editProfilePicture(form.user, imageURL)
+                if (user) {
+                    req.session.set('user', {...user, profilePicture: imageURL})
+                    await req.session.save()
+                }
             })
             .on('error', (error) => {console.log(error)})
             .end(req.file.buffer)
@@ -80,7 +86,7 @@ handler.post(async (req, res) => {
 
         if (form.newPassword !== '' && !validatePassword) return res.status(406).send('Password Format is incorrect')
 
-        if (!(await UDM.matchingPassword(form.user, form.passwordConfirm))) return res.status(406).send('Must have correct password to edit username or password')
+        if (!(await UDM.matchingPassword(form.user, form.passwordConfirm))) return res.status(406).send('Incorrect Password')
         
         if (await UDM.findUser(form.newUsername.toLowerCase())) return res.status(406).send('Username already exists')
 
@@ -88,11 +94,19 @@ handler.post(async (req, res) => {
 
         await UDM.editProfile(form.user.toLowerCase(), editSettings)
 
-        res.status(200).send('OK')
+        console.log(req.session?.get('user'))
+
+        res.status(200).end('OK')
     })
 })
 
-export default handler
+export default withIronSession(handler, {
+    password: process.env.ironSessionPassword,
+    cookieName: "calendar.sid",
+    cookieOptions: {
+      secure: process.env.NODE_ENV === "production",
+    },
+})
 
 export const config = {
     api: {
