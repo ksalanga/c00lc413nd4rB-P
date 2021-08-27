@@ -17,13 +17,14 @@ export default function Home({ user }) {
   )
 }
 
-export async function getServerSideProps({ req, res}) {
+export async function getServerSideProps({ req, res }) {
   const handler = nextConnect().use(authenticate)
 
   try {
     await handler.run(req, res)
     var user = req.session?.get('user')
     if (user === {} || user === undefined) { user = null }
+
     return { props: { user } }
   } catch (e) {
     console.log(e)
