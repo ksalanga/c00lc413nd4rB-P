@@ -1,13 +1,11 @@
 import Head from "next/head"
 import { useRouter } from "next/router"
-import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import defaultPic from '../../public/default.png'
 import styles from '../../styles/profilepicture.module.css'
 
 function Navbar({ user, loginPage }) {
     const router = useRouter()
-    const userLoggedIn = useState(null)
 
     const logOut = async () => {
         const response = await fetch('/api/users/logout', {method: 'GET'})
@@ -32,8 +30,6 @@ function Navbar({ user, loginPage }) {
     } else {
         var rightSideItem = <a className="nav-link" href="/login">Login</a>
     }
-
-    useEffect(() => {}, [userLoggedIn])
 
     return (
         <>
