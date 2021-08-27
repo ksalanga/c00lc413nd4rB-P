@@ -81,12 +81,13 @@ export default function profileForm({ user }) {
     const onFileChange = event => {
         const file = event.target.files[0]
 
+        if (!file) return
+
         if (file.type !== 'image/png' && file.type !== 'image/jpeg') {
             NotificationManager.warning('File Must be image/png', '', 10000)
             return
         }
-
-        if (!file) return
+        
         setFile(file)
     }
 
@@ -121,13 +122,23 @@ export default function profileForm({ user }) {
             <input type={textOrPass} onChange={(e) => setPasswordConfirm(e.target.value)}></input>
             <br></br>
             <br></br>
-            {!deleteConfirm &&
+            {file &&
             <>
+            <div><b>Your New Picture: </b>{file.name} <button onClick={(e) => {
+                e.preventDefault()
+                setFile(null)
+            }}>x</button></div>
+            <br></br>
+            </>}
+            <button type="submit">Submit</button>
+            <button onClick={(e) => { e.preventDefault()
+            setTextOrPass(textOrPass === 'password' ? 'text' : 'password')}}>👁️</button>
+            <br></br>
+            <br></br>
+            {!deleteConfirm &&
             <button onClick={(e) => {
                 e.preventDefault()
                 setDeleteConfirm(true)}}>Delete User</button>
-            <br></br>
-            </>
             }
             {deleteConfirm &&
             <div>Are you sure you want to delete this account? 
@@ -143,18 +154,6 @@ export default function profileForm({ user }) {
                 </button>
             </div>
             }
-            {file &&
-            <>
-            <br></br>
-            <div><b>Your New Picture: </b>{file.name} <button onClick={(e) => {
-                e.preventDefault()
-                setFile(null)
-            }}>x</button></div>
-            </>}
-            <br></br>
-            <button type="submit">Submit</button>
-            <button onClick={(e) => { e.preventDefault()
-            setTextOrPass(textOrPass === 'password' ? 'text' : 'password')}}>👁️</button>
         </form>
         </>
     )
