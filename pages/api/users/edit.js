@@ -66,7 +66,7 @@ handler.post(async (req, res) => {
             blobStream
             .on('finish', async () => {
                 const imageURL = `https://storage.googleapis.com/${process.env.GCS_BUCKET}/${file.name}`
-                await UDM.editProfilePicture(form.user, imageURL)
+                await UDM.editProfilePicture(form.id, imageURL)
             })
             .on('error', (error) => {console.log(error)})
             .end(req.file.buffer)
