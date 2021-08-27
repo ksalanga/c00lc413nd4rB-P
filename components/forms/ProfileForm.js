@@ -64,12 +64,13 @@ export default function profileForm({ user }) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({user: userInfo['user'], password: passwordConfirm})
+            body: JSON.stringify({id: userInfo['id'], user: userInfo['user'], password: passwordConfirm})
         })
 
         if (response.ok) {
             await fetch('/api/users/logout', {method: 'GET'})
             router.push('/')
+            return
         }
 
         const message = await response.text()
