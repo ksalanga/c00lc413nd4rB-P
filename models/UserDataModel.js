@@ -73,11 +73,11 @@ export default class UserDataModel {
       }
     }
 
-    async editProfilePicture(username, url) {
+    async editProfilePicture(id, url) {
       try {
         await client.connect()
 
-        return await users.updateOne({username: username}, {$set : {'profilePicture' : url}})
+        return await users.updateOne({_id: ObjectId(id)}, {$set : {'profilePicture' : url}})
       } catch (e) {
         console.log(e)
       }
