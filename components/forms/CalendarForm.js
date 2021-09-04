@@ -42,11 +42,10 @@ function Content(props) {
 
 export default function CalendarForm(props) {
     const [step, setStep] = useState(0)
-    const [form, setForm] = useState([])
+    const [form, setForm] = useState({})
     const [decided, setDecided] = useState()
     const colLength = props.liveEvents ? 2 : 3
     const rowLength = props.myEvents ? 2 : 3
-    var content = []
 
     return (
         <div className={styles.calendarComponent} style={{
