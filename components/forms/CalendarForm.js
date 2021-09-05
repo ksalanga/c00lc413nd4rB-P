@@ -5,6 +5,7 @@ import Calendar from 'react-calendar'
 
 function Content(props) {
   const step = props.step
+  const decided = props.decided
   const setStep = props.setStep
   const setDecided = props.setDecided
   if (step == 0) {
@@ -31,8 +32,10 @@ function Content(props) {
       </>
     )
   } else {
+    // Post Form Data here with if it's decided or not
     return(
       <>
+      {/* Congratulations, you have set an event. Here's a link, blah blah blah */}
       <Calendar/>
       {props.form.map((item, index) => {return(<div key={index}>{item}</div>)})}
       </>
@@ -52,7 +55,7 @@ export default function CalendarForm(props) {
             gridRowEnd: rowLength,
             gridColumnEnd: colLength
         }}>
-          <Content step={step} form={form} setStep={setStep} setForm={setForm} setDecided={setDecided}/>
+          <Content step={step} form={form} setStep={setStep} setForm={setForm} setDecided={setDecided} decided={decided}/>
         </div>
     )
 }
