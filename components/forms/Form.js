@@ -4,14 +4,15 @@ import AutoComplete from '../utils/AutoComplete'
 import { getLatLng, geocodeByAddress } from 'react-places-autocomplete'
 
 function Form(props) {
-    const [minDate, setMinDate] = useState("")
-    const [maxDate, setMaxDate] = useState("")
+    const t = 'T00:00:00'
+    const [minDate, setMinDate] = useState('')
+    const [maxDate, setMaxDate] = useState('')
     const [dates, setDates] = useState([])
-    const [address, setAddress] = useState("")
+    const [address, setAddress] = useState('')
     const [previousDates, setPreviousDates] = useState([])
-    const [expirationDate, setExpirationDate] = useState("")
+    const [expirationDate, setExpirationDate] = useState('')
     const [privOrPublic, setPrivOrPublic] = useState([false, false])
-    const [maxPeople, setMaxPeople] = useState("")
+    const [maxPeople, setMaxPeople] = useState('')
     const [graphicSelector, switchSelector] = useState(false)
     const today = new Date(Date.parse(new Date().toLocaleDateString())).toISOString().split('T')[0]
     
@@ -42,12 +43,12 @@ function Form(props) {
     }
 
     async function checkSubmission() {
-        if (maxPeople === "" || minDate === "" || maxDate === "" || !privOrPublic.includes(true) || address === "" || expirationDate === "") return
+        if (maxPeople === '' || minDate === '' || maxDate === '' || !privOrPublic.includes(true) || address === '' || expirationDate === '') return
 
         const latLng = await getGeoCode(address)
         // Calendar Dates are all in UTC standard which is an issue. We've to convert all of them to the timezone.
         const form = {
-            privateOrPublic: privOrPublic[0] ? "private" : "public",
+            privateOrPublic: privOrPublic[0] ? 'private' : 'public',
             dates: dates, 
             maximumPeople: maxPeople,
             address: address,
@@ -60,50 +61,101 @@ function Form(props) {
         props.next()
     }
 
-    // If start date, expiration date, or end date are typed, we have to set boundaries:
-    // start date: if value.getTime() < today, don't setMinDate
-    // end date: if value.getTime() < minDate, don't setMaxDate
-    // expiration Date, if expiration Date.getTime() < today or greater than minDate, don't set Expiration Date
+    const [displayMin, setDisplayMin] = useState('')
+    const [displayMax, setDisplayMax] = useState('')
+    const [displayExp, setDisplayExp] = useState('')
 
     useEffect(() => {
         if (dates.length == 0) {
-            setMinDate("")
-            setMaxDate("")
+            setMinDate('')
+            setDisplayMin('')
+            setMaxDate('')
+            setDisplayMax('')
         } else if (dates.length == 1) {
-            setMinDate(formatDate(dates[0]))
-            setMaxDate(formatDate(dates[0]))
+            const singleDay = formatDate(dates[0])
+            setMinDate(singleDay)
+            setDisplayMin(singleDay)
+            setMaxDate(singleDay)
+            setDisplayMax(singleDay)
         } else {
             dates.sort((a, b)=>{return a.getTime() - b.getTime()})
             setMinDate(formatDate(dates[0]))
+            setDisplayMin(formatDate(dates[0]))
             setMaxDate(formatDate(dates[dates.length - 1]))
+            setDisplayMax(formatDate(dates[dates.length - 1]))
         }
     }, [dates])
 
     useEffect(() => {
-        if (minDate !== "") {
-            const expirationDate = minDate === today ? today :
-            new Date(minDate + 'T00:00:00').addDays(-1).toISOString().split('T')[0]
-            setExpirationDate(expirationDate)
+        if (minDate !== '') {
+            const minDateInDateFormat = new Date(minDate + t)
+
+            // Inputting minDate values into dates array
+            if (dates.length <= 1) {
+                setDates([minDateInDateFormat])
+            } else { // Filter out all dates that are less than getTime of new minDate.
+                setDates(dates.filter(date => date.getTime() >= minDateInDateFormat.getTime()))
+            }
+
+            setExpirationDate(minDate)
+            setDisplayExp(minDate)
+        } else {
+            setMaxDate('')
+            setDisplayMax('')
+            setExpirationDate('')
+            setDisplayMax('')
+            setDates([])
         }
     }, [minDate])
 
+    // If start date, expiration date, or end date are typed, we have to set boundaries:
+    // start date: if value.getTime() < today, don't setMinDate
+    // end date: if value.getTime() < minDate, don't setMaxDate
+    // expiration Date, if expiration Date.getTime() < today or greater than minDate, don't set Expiration Date
     const handleChange = e => {
-        const newDate = new Date(e.target.value + 'T00:00:00')
-        if (newDate.getTime() < new Date(today + 'T00:00:00').getTime()) return
-        setMinDate(e.target.value)
-        if (maxDate != '') {
-            let startDate = new Date(e.target.value + 'T00:00:00')
-            let endDate = new Date(maxDate + 'T00:00:00')
-            if (startDate.getTime() > endDate.getTime()) {
-                document.getElementById("endDay").value = ""
-                setMaxDate('')
-            }
+        const selectedDate = e.target.value
+        const newDate = new Date(selectedDate + t)
+        switch(e.target.id) {
+            case 'startDay':
+                if (newDate.getTime() < new Date(today + t).getTime()) {
+                    setDisplayMin(minDate)
+                    return
+                }
+                setMinDate(selectedDate)
+                if (maxDate !== '') {
+                    let startDate = newDate // keep note
+                    let endDate = new Date(maxDate + t)
+                    if (startDate.getTime() > endDate.getTime()) {
+                        setMaxDate('')
+                        setDisplayMax('')
+                    }
+                }
+                break
+            case 'endDay':
+                if (newDate.getTime() < new Date(today + t).getTime() 
+                ||  newDate.getTime() < new Date(minDate + t).getTime()) {
+                    setDisplayMax(maxDate)
+                    return
+                }
+                setDates(getDates(new Date(minDate + t), newDate))
+                setMaxDate(selectedDate)
+                break
+            case 'expirationDay':
+                if (newDate.getTime() < new Date(today + t).getTime() ||
+                newDate.getTime() > new Date(minDate + t).getTime()) {
+                    setDisplayExp(expirationDate)
+                    return
+                }
+                setExpirationDate(selectedDate)
+                break
         }
     }
 
     const handleClick = e => {
-        e.target.id === "private" ? setPrivOrPublic([true, false]) : setPrivOrPublic([false, true])
+        e.target.id === 'private' ? setPrivOrPublic([true, false]) : setPrivOrPublic([false, true])
     }
+
+    // Separate Comparator value
 
     return(
         graphicSelector ?
@@ -125,43 +177,34 @@ function Form(props) {
             e.preventDefault()
             checkSubmission()
         }}>
-            <input type="radio" id="private" name="privOrPublic" onChange={handleClick} checked={privOrPublic[0]}/>Private
-            <input type="radio" id="public" name="privOrPublic" onChange={handleClick} checked={privOrPublic[1]}/>Public
-            <label htmlFor="people" style={{paddingLeft: "20px", paddingRight: "5px"}}> Maximum Amount of People</label>
-            <input type="number" id="people" min="1" max="300" onChange={e => setMaxPeople(e.target.value)} onSubmit={(e) => {e.preventDefault()}} value={maxPeople}/>
+            <input type='radio' id='private' name='privOrPublic' onChange={handleClick} checked={privOrPublic[0]}/>Private
+            <input type='radio' id='public' name='privOrPublic' onChange={handleClick} checked={privOrPublic[1]}/>Public
+            <label htmlFor='people' style={{paddingLeft: '20px', paddingRight: '5px'}}> Maximum Amount of People</label>
+            <input type='number' id='people' min='1' max='300' onChange={e => setMaxPeople(e.target.value)} onSubmit={(e) => {e.preventDefault()}} value={maxPeople}/>
             <br/><br/>
-            <label htmlFor="startDay" style={{paddingRight: "5px"}}>Start Date</label>
-            <input type="date" id="startDay" value={minDate} min={today} onChange={handleChange}/>
-            { minDate != "" &&
+            <label htmlFor='startDay' style={{paddingRight: '5px'}}>Start Date</label>
+            <input type='date' id='startDay' value={displayMin} min={today} onBlur={handleChange} onChange={(e) => setDisplayMin(e.target.value)}/>
+            
+            { minDate != '' &&
                 <>
-                    <label htmlFor="endDay" style={{marginLeft: "10px", paddingRight: "5px"}}>End Date</label>
-                    <input type="date" id="endDay" value={maxDate} min={minDate} onChange={(e) => {
-                        const newDate = new Date(e.target.value + 'T00:00:00')
-                        if (newDate.getTime() < new Date(today + 'T00:00:00').getTime() ||
-                        newDate.getTime() < new Date(minDate + 'T00:00:00').getTime()) return
-                        setDates(getDates(new Date(minDate+'T00:00:00'), new Date(e.target.value+'T00:00:00')))
-                        setMaxDate(e.target.value)
-                    }}/>
+                    <label htmlFor='endDay' style={{marginLeft: '10px', paddingRight: '5px'}}>End Date</label>
+                    <input type='date' id='endDay' value={displayMax} min={minDate} onBlur={handleChange} onChange={(e) => setDisplayMax(e.target.value)}/>
+                    {/* value={maxDate === '' ? null : maxDate} */}
                     <br></br><br></br>
-                    <label htmlFor="expirationDay" style={{paddingRight:"5px"}}>Last Day Users can Edit this Calendar</label>
-                    <input type="date" id="expirationDay" value={expirationDate} min={today} max={minDate} onChange={(e) => {
-                        const newDate = new Date(e.target.value + 'T00:00:00')
-                        if (newDate.getTime() < new Date(today + 'T00:00:00').getTime() ||
-                        newDate.getTime() > new Date(minDate + 'T00:00:00').getTime()) return
-                        setExpirationDate(e.target.value)
-                    }}/>
+                    <label htmlFor='expirationDay' style={{paddingRight:'5px'}}>Day users can no longer edit this Calendar</label>
+                    <input type='date' id='expirationDay' value={displayExp} min={today} max={minDate} onBlur={handleChange} onChange={(e) => setDisplayExp(e.target.value)}/>
                 </>
             }
             <br></br><br></br>
             <AutoComplete address={address} setAddress={setAddress}></AutoComplete>
             <br></br><br></br>
-            <button id="submit" type="submit" value="Submit">Submit ➡️</button>
+            <button id='submit' type='submit' value='Submit'>Submit ➡️</button>
         </form>
         <button onClick={(e) => {
             e.preventDefault()
             setPreviousDates(dates)
             switchSelector(true)
-        }} style={{marginLeft: "10px"}}>📅 graphical selector</button>
+        }} style={{marginLeft: '10px'}}>📅 graphical selector</button>
         </>
     )
 }
