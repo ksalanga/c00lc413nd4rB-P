@@ -22,7 +22,7 @@ function Form(props) {
             const geoCode = await getLatLng(results[0])
             return geoCode
         } catch (error) {
-            alert(error)
+            console.log(error)
         }
     }
 
@@ -180,19 +180,19 @@ function Form(props) {
             <input type='radio' id='private' name='privOrPublic' onChange={handleClick} checked={privOrPublic[0]}/>Private
             <input type='radio' id='public' name='privOrPublic' onChange={handleClick} checked={privOrPublic[1]}/>Public
             <label htmlFor='people' style={{paddingLeft: '20px', paddingRight: '5px'}}> Maximum Amount of People</label>
-            <input type='number' id='people' min='1' max='300' onChange={e => setMaxPeople(e.target.value)} onSubmit={(e) => {e.preventDefault()}} value={maxPeople}/>
+            <input type='number' id='people' min='1' max='300' onChange={e => setMaxPeople(e.target.value)} onSubmit={e => {e.preventDefault()}} value={maxPeople}/>
             <br/><br/>
             <label htmlFor='startDay' style={{paddingRight: '5px'}}>Start Date</label>
-            <input type='date' id='startDay' value={displayMin} min={today} onBlur={handleChange} onChange={(e) => setDisplayMin(e.target.value)}/>
+            <input type='date' id='startDay' value={displayMin} min={today} onBlur={handleChange} onChange={(e) => setDisplayMin(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
             
             { minDate != '' &&
                 <>
                     <label htmlFor='endDay' style={{marginLeft: '10px', paddingRight: '5px'}}>End Date</label>
-                    <input type='date' id='endDay' value={displayMax} min={minDate} onBlur={handleChange} onChange={(e) => setDisplayMax(e.target.value)}/>
+                    <input type='date' id='endDay' value={displayMax} min={minDate} onBlur={handleChange} onChange={(e) => setDisplayMax(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
                     {/* value={maxDate === '' ? null : maxDate} */}
                     <br></br><br></br>
                     <label htmlFor='expirationDay' style={{paddingRight:'5px'}}>Day users can no longer edit this Calendar</label>
-                    <input type='date' id='expirationDay' value={displayExp} min={today} max={minDate} onBlur={handleChange} onChange={(e) => setDisplayExp(e.target.value)}/>
+                    <input type='date' id='expirationDay' value={displayExp} min={today} max={minDate} onBlur={handleChange} onChange={(e) => setDisplayExp(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
                 </>
             }
             <br></br><br></br>
