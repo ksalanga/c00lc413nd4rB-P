@@ -155,7 +155,7 @@ export default function MultiCalendar(props) {
       className={range ? 'react-calendar--selectRange' : ''}
       onClickDay={onClickDay}
       minDetail={"decade"}
-      minDate={new Date()}
+      minDate={new Date(props.minDate + 'T00:00:00')}
       maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 100))}
       tileClassName={({date}) => {
         if (dateAlreadyClicked(dates, date)) {

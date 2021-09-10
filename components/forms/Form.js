@@ -5,6 +5,7 @@ import { getLatLng, geocodeByAddress } from 'react-places-autocomplete'
 
 function Form(props) {
     const t = 'T00:00:00'
+    const decided = props.decided
     const [minDate, setMinDate] = useState('')
     const [maxDate, setMaxDate] = useState('')
     const [dates, setDates] = useState([])
@@ -14,7 +15,6 @@ function Form(props) {
     const [privOrPublic, setPrivOrPublic] = useState([false, false])
     const [maxPeople, setMaxPeople] = useState('')
     const [graphicSelector, switchSelector] = useState(false)
-    const today = new Date(Date.parse(new Date().toLocaleDateString())).toISOString().split('T')[0]
     
     const getGeoCode = async (address) => {
         try {
@@ -32,6 +32,10 @@ function Form(props) {
         return date
     }
 
+    const today = new Date()
+    const addOneDay = decided ? 0 : 1
+    const minSelect = new Date(Date.parse(today.addDays(addOneDay).toLocaleDateString())).toISOString().split('T')[0]
+
     function getDates(startDate, stopDate) {
         var dateArray = new Array()
         var currentDate = startDate
@@ -45,14 +49,24 @@ function Form(props) {
     async function checkSubmission() {
         if (maxPeople === '' || minDate === '' || maxDate === '' || !privOrPublic.includes(true) || address === '' || expirationDate === '') return
 
+        var expires
+        if (decided) {
+            expires = null
+        } else if (parseInt(expirationDate.split('-')[1]) === parseInt(minSelect.split('-')[1])) {
+            expires = today.addDays(1)
+        } else {
+            expires = new Date(expirationDate + t)
+        }
+
         const latLng = await getGeoCode(address)
-        // Calendar Dates are all in UTC standard which is an issue. We've to convert all of them to the timezone.
+
+        // Calendar dates are all in the time zone of the local machine of the user at 12 AM of each day.
         const form = {
             privateOrPublic: privOrPublic[0] ? 'private' : 'public',
             dates: dates, 
             maximumPeople: maxPeople,
             address: address,
-            expirationDate: expirationDate,
+            selectionExpirationDate: expires,
             latLng: latLng
         }
 
@@ -109,15 +123,15 @@ function Form(props) {
     }, [minDate])
 
     // If start date, expiration date, or end date are typed, we have to set boundaries:
-    // start date: if value.getTime() < today, don't setMinDate
+    // start date: if value.getTime() < TODAY, don't setMinDate
     // end date: if value.getTime() < minDate, don't setMaxDate
-    // expiration Date, if expiration Date.getTime() < today or greater than minDate, don't set Expiration Date
+    // expiration Date, if expiration Date.getTime() < TODAY or greater than minDate, don't set Expiration Date
     const handleChange = e => {
         const selectedDate = e.target.value
         const newDate = new Date(selectedDate + t)
         switch(e.target.id) {
             case 'startDay':
-                if (newDate.getTime() < new Date(today + t).getTime()) {
+                if (newDate.getTime() < new Date(minSelect + t).getTime()) {
                     setDisplayMin(minDate)
                     return
                 }
@@ -132,7 +146,7 @@ function Form(props) {
                 }
                 break
             case 'endDay':
-                if (newDate.getTime() < new Date(today + t).getTime() 
+                if (newDate.getTime() < new Date(minSelect + t).getTime() 
                 ||  newDate.getTime() < new Date(minDate + t).getTime()) {
                     setDisplayMax(maxDate)
                     return
@@ -141,7 +155,7 @@ function Form(props) {
                 setMaxDate(selectedDate)
                 break
             case 'expirationDay':
-                if (newDate.getTime() < new Date(today + t).getTime() ||
+                if (newDate.getTime() < new Date(minSelect + t).getTime() ||
                 newDate.getTime() > new Date(minDate + t).getTime()) {
                     setDisplayExp(expirationDate)
                     return
@@ -165,7 +179,7 @@ function Form(props) {
             setDates(previousDates)
             switchSelector(false)
         }}>⬅️</button>
-        <MultiCalendar dates={dates} setDates={setDates} switchSelector={switchSelector} getDates={getDates}></MultiCalendar>
+        <MultiCalendar dates={dates} setDates={setDates} switchSelector={switchSelector} getDates={getDates} minDate={minSelect}></MultiCalendar>
         </>
         :
         <>
@@ -183,16 +197,19 @@ function Form(props) {
             <input type='number' id='people' min='1' max='300' onChange={e => setMaxPeople(e.target.value)} onSubmit={e => {e.preventDefault()}} value={maxPeople}/>
             <br/><br/>
             <label htmlFor='startDay' style={{paddingRight: '5px'}}>Start Date</label>
-            <input type='date' id='startDay' value={displayMin} min={today} onBlur={handleChange} onChange={(e) => setDisplayMin(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
+            <input type='date' id='startDay' value={displayMin} min={minSelect} onBlur={handleChange} onChange={(e) => setDisplayMin(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
             
             { minDate != '' &&
                 <>
                     <label htmlFor='endDay' style={{marginLeft: '10px', paddingRight: '5px'}}>End Date</label>
                     <input type='date' id='endDay' value={displayMax} min={minDate} onBlur={handleChange} onChange={(e) => setDisplayMax(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
-                    {/* value={maxDate === '' ? null : maxDate} */}
+                </>
+            }
+            { (minDate != '' && !decided) &&
+                <>
                     <br></br><br></br>
                     <label htmlFor='expirationDay' style={{paddingRight:'5px'}}>Day users can no longer edit this Calendar</label>
-                    <input type='date' id='expirationDay' value={displayExp} min={today} max={minDate} onBlur={handleChange} onChange={(e) => setDisplayExp(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
+                    <input type='date' id='expirationDay' value={displayExp} min={minSelect} max={minDate} onBlur={handleChange} onChange={(e) => setDisplayExp(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
                 </>
             }
             <br></br><br></br>

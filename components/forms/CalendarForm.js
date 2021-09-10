@@ -28,7 +28,7 @@ function Content(props) {
   } else if (step == 1) {
     return(
       <>
-        <Form next={() => setStep(step + 1)} submit={(data) => props.setForm(data)} setStep={setStep}/>
+        <Form next={() => setStep(step + 1)} submit={(data) => props.setForm(data)} setStep={setStep} decided={decided}/>
       </>
     )
   } else {
