@@ -2,6 +2,8 @@ import React, {useState, useEffect} from 'react'
 import MultiCalendar from '../MultiCalendar'
 import AutoComplete from '../utils/AutoComplete'
 import { getLatLng, geocodeByAddress } from 'react-places-autocomplete'
+import { NotificationContainer, NotificationManager } from 'react-notifications'
+import 'react-notifications/lib/notifications.css'
 
 function Form(props) {
     const t = 'T00:00:00'
@@ -49,12 +51,28 @@ function Form(props) {
     async function checkSubmission() {
         if (maxPeople === '' || minDate === '' || maxDate === '' || !privOrPublic.includes(true) || address === '' || expirationDate === '') return
 
+        if (!decided && dates.length <= 1) {
+            NotificationManager.warning('For the Undecided feature, at least two days must be selected.', '', 10000)
+            return
+        }
+        // If date is decided, there isn't an expiration date for user editing.
         var expires
         if (decided) {
             expires = null
         } else if (parseInt(expirationDate.split('-')[1]) === parseInt(minSelect.split('-')[1])) {
+            // Hours must be precise for this case:
+            // If the expiration date is tomorrow (minSelect) and it is undecided
+            // Reason: If someone is editing this form today, but today is at 11:59 PM.
+            // Since most of my new Date JS functions are 0'ing out the hours,
+            // Just using the selected Tomorrow Value will also 0 out the date times.
+            // If this is the case, users who want to add their available dates only have 1 minute.
+            // So, we must take the precise time of today including hours, minutes and seconds, so that an actual 24 hours is added.
+            // This line does exactly that by making today the new Date and adding one day. (A date with no 0ing of hours, minutes, seconds)
+    
             expires = today.addDays(1)
         } else {
+            // Every other expiration date can have an expiration date with only the highest order of precision being the day.
+            // All lower time values (hours, minutes, seconds) are 0.
             expires = new Date(expirationDate + t)
         }
 
@@ -183,6 +201,7 @@ function Form(props) {
         </>
         :
         <>
+        <NotificationContainer/>
         <button onClick={(e) => {
             e.preventDefault()
             props.setStep(0)
