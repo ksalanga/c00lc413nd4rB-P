@@ -2,6 +2,9 @@ import {useState} from 'react'
 import styles from '../../styles/Home.module.css'
 import Form from './Form.js'
 import Calendar from 'react-calendar'
+import Image from 'next/image'
+import undecidedCalendar from '../../public/undecidedCalendar.svg'
+import decidedCalendar from '../../public/date.svg'
 
 function Content(props) {
   const step = props.step
@@ -11,17 +14,23 @@ function Content(props) {
   if (step == 0) {
     return(
       <>
-        <span className={styles.calendarType} onClick={() => {
+        <span className={styles.calendarType + ' ' + styles.dateWrap} onClick={() => {
           setStep(step + 1)
           setDecided(false)
         }}>
-          I Have a Rough Estimate of the Dates
+          <Image src={undecidedCalendar} width='90%' height='90%'></Image>
+          <div className={styles.dateDescriptionLayer} style={{color: "red"}}>
+              <p className={styles.dateDescription}>Event Date is NOT yet Decided</p>
+          </div>
         </span>
-        <span className={styles.calendarType} onClick={() => {
+        <span className={styles.calendarType + ' ' + styles.dateWrap} onClick={() => {
           setStep(step + 1)
           setDecided(true)
         }}>
-          I know the exact Date(s)
+          <Image src={decidedCalendar} width='90%' height='90%'></Image>
+          <div className={styles.dateDescriptionLayer} style={{color: "rgb(20, 201, 140)"}}>
+              <p className={styles.dateDescription}>Event Date has been Decided</p>
+          </div>
         </span>
       </>
     )

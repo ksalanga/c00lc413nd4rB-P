@@ -46,3 +46,42 @@
   background-color: #D3D3D3;
   cursor: pointer;
 }
+
+.dateWrap {
+  position: relative;
+  cursor: pointer;
+}
+
+.dateDescriptionLayer {
+  border-radius: 10px;
+  position: absolute;
+  font-weight: bold;
+  font-size: large;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #d3d3d3c2;
+  visibility: hidden;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: opacity .2s, visibility .2s;
+}
+
+.dateDescription {
+  transition: .2s;
+  transform: translateY(1em);
+}
+
+.dateWrap:hover .dateDescriptionLayer {
+  cursor: pointer;
+  visibility: visible;
+  opacity: 1;
+}
+
+.dateWrap:hover .dateDescription {
+  transform: translateY(0);
+}
