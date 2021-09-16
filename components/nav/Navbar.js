@@ -44,6 +44,9 @@ function Navbar({ user, loginPage }) {
                     <li className="nav-item active">
                         <a className="nav-link" href="#">Live Events</a>
                     </li>
+                    <li className="nav-item active">
+                        <a className="nav-link" href="/credits">Credits</a>
+                    </li>
                 </ul>
             </div> {!loginPage &&
             <ul className="nav navbar-nav ml-auto">
