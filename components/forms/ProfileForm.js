@@ -107,7 +107,7 @@ export default function profileForm({ user }) {
                     <Image src={profilePicture} width="200px" height="200px" className={styles.profileHover}></Image>
                     }
                     <div className={styles.imageDescriptionLayer}>
-                        <p className={styles.imgeDescription}>Change Profile Picture</p>
+                        <p className={styles.imageDescription}>Change Profile Picture</p>
                     </div>
                 </label>
                 </div>
