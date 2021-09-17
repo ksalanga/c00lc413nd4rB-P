@@ -11,9 +11,9 @@ export default function AutoComplete({ address, setAddress }) {
         <div className={styles.autocomplete} style={{width: "400px"}}>
           <input {...getInputProps({placeholder: 'Input Event Address', style: {width: "400px"}})} />
           <div className={styles.items}>
-            {suggestions.map(suggestion => {
+            {suggestions.map((suggestion, index) => {
                 return(
-                    <div {...getSuggestionItemProps(suggestion)} style={{fontSize: "70%"}}><span>{suggestion.description}</span></div>
+                    <div key={index} {...getSuggestionItemProps(suggestion)} style={{fontSize: "70%"}}><span>{suggestion.description}</span></div>
                 )
             })}
           </div>
