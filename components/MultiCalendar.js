@@ -1,11 +1,13 @@
 import React, {useState, useEffect} from 'react'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
+import animationStyles from '../styles/animations.module.css'
 
 const dateAlreadyClicked = (dates, date) => dates.some(d => new Date(date).getTime() === new Date(d).getTime())
 const datesExcept = (dates, date) => dates.filter(d => !(new Date(date).getTime() === new Date(d).getTime()))
 
 export default function MultiCalendar(props) {
+  const fadeInUp = animationStyles.animated + ' ' + animationStyles.animatedFadeInUp + ' ' + animationStyles.fadeInUp
   const dates = props.dates
   const setDates = props.setDates
   const [range, setRange] = useState(false)
@@ -149,29 +151,25 @@ export default function MultiCalendar(props) {
   }
 
   return (
-    <>
-    <Calendar
-      inputRef={ref}
-      className={range ? 'react-calendar--selectRange' : ''}
-      onClickDay={onClickDay}
-      minDetail={"decade"}
-      minDate={new Date(props.minDate + 'T00:00:00')}
-      maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 100))}
-      tileClassName={({date}) => {
-        if (dateAlreadyClicked(dates, date)) {
-        return 'react-calendar__tile--active'}
-      }}
-      // max Date is always set to 100 years ahead of today
-    />
-    <button onClick={(e) => {
-      e.preventDefault()
-      resetHover()
-      setRange(!range)}}
-      style={range ? {backgroundColor : '#90ee90'} : null}>range</button>
-    <button onClick={(e) => {
-      e.preventDefault()
-      props.switchSelector(false)
-    }}>Submit</button>
-    </>
+    <div style={{textAlign: 'center'}} className={fadeInUp}>
+      <Calendar
+        inputRef={ref}
+        className={range ? 'react-calendar--selectRange' : ''}
+        onClickDay={onClickDay}
+        minDetail={"decade"}
+        minDate={new Date(props.minDate + 'T00:00:00')}
+        maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 100))}
+        tileClassName={({date}) => {
+          if (dateAlreadyClicked(dates, date)) {
+          return 'react-calendar__tile--active'}
+        }}
+        // max Date is always set to 100 years ahead of today
+      />
+      <button onClick={(e) => {
+        e.preventDefault()
+        resetHover()
+        setRange(!range)}}
+        style={range ? {backgroundColor : '#90ee90'} : null}>Range Selection</button>
+    </div>
   )
 }
