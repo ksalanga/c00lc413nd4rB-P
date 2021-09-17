@@ -7,6 +7,7 @@ import undecidedCalendar from '../../public/undecidedCalendar.svg'
 import decidedCalendar from '../../public/date.svg'
 
 function Content(props) {
+  const [name, setName] = useState('')
   const step = props.step
   const decided = props.decided
   const setStep = props.setStep
@@ -40,13 +41,24 @@ function Content(props) {
         <Form next={() => setStep(step + 1)} submit={(data) => props.setForm(data)} setStep={setStep} decided={decided}/>
       </>
     )
+  } else if (step == 2) {
+    return (
+      <>
+        <h1>Awesome!</h1>
+        <h2>All we need now is to name your Event:</h2>
+        <input type="text" onChange={(e) => {setName(e.target.value)}}></input>
+        <button onClick={() => {
+          if (name === '') return
+          props.setForm({...props.form, name: name})
+          props.setStep(props.step + 1)
+        }}>Submit</button>
+      </>
+    )
   } else {
     // Post Form Data here with if it's decided or not
     return(
       <>
-      {/* Congratulations, you have set an event. Here's a link, blah blah blah */}
       <Calendar/>
-      {props.form.map((item, index) => {return(<div key={index}>{item}</div>)})}
       </>
     )
   }
