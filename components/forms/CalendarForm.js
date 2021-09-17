@@ -1,5 +1,6 @@
 import {useState} from 'react'
 import styles from '../../styles/Home.module.css'
+import animationStyles from '../../styles/animations.module.css'
 import Form from './Form.js'
 import Calendar from 'react-calendar'
 import Image from 'next/image'
@@ -12,7 +13,9 @@ function Content(props) {
   const decided = props.decided
   const setStep = props.setStep
   const setDecided = props.setDecided
-  if (step == 0) {
+  const fadeInUp = animationStyles.animated + ' ' + animationStyles.animatedFadeInUp + ' ' + animationStyles.fadeInUp
+  
+  if (step == 0) { // ** Choosing if Event is Decided or Undecided **
     return(
       <>
         <span className={styles.calendarType + ' ' + styles.dateWrap} onClick={() => {
@@ -35,27 +38,36 @@ function Content(props) {
         </span>
       </>
     )
-  } else if (step == 1) {
+  } else if (step == 1) { // ** Main bulk of the Form **
     return(
       <>
-        <Form next={() => setStep(step + 1)} submit={(data) => props.setForm(data)} setStep={setStep} decided={decided}/>
+        <Form next={() => setStep(step + 1)} submit={(data) => props.setForm(data)} setStep={setStep} decided={decided} form={props.form}/>
       </>
     )
-  } else if (step == 2) {
+  } else if (step == 2) { // ** Choosing Name **
     return (
       <>
-        <h1>Awesome!</h1>
-        <h2>All we need now is to name your Event:</h2>
-        <input type="text" onChange={(e) => {setName(e.target.value)}}></input>
-        <button onClick={() => {
-          if (name === '') return
-          props.setForm({...props.form, name: name})
-          props.setStep(props.step + 1)
-        }}>Submit</button>
+        <button onClick={(e) => {
+            e.preventDefault()
+            setStep(step - 1)
+        }} className={fadeInUp}>⬅️</button>
+        <div className={fadeInUp}>
+          <h1>Awesome!</h1>
+          <h2>All we need now is to name your Event:</h2>
+          <br></br>
+          <input size='70' type="text" onChange={(e) => {setName(e.target.value)}}></input>
+          <br></br>
+          <br></br>
+          <button onClick={(e) => {
+            e.preventDefault()
+            if (name === '') return
+            props.setForm({...props.form, name: name})
+            props.setStep(props.step + 1)
+          }}>Submit</button>
+        </div>
       </>
     )
-  } else {
-    // Post Form Data here with if it's decided or not
+  } else { // ** Post Form Data here **
     return(
       <>
       <Calendar/>

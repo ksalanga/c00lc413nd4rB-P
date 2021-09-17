@@ -4,19 +4,21 @@ import AutoComplete from '../utils/AutoComplete'
 import { getLatLng, geocodeByAddress } from 'react-places-autocomplete'
 import { NotificationContainer, NotificationManager } from 'react-notifications'
 import 'react-notifications/lib/notifications.css'
+import animationStyles from '../../styles/animations.module.css'
 
 function Form(props) {
     const t = 'T00:00:00'
+    const fadeInUp = animationStyles.animated + ' ' + animationStyles.animatedFadeInUp + ' ' + animationStyles.fadeInUp
     const decided = props.decided
-    const [minDate, setMinDate] = useState('')
-    const [maxDate, setMaxDate] = useState('')
-    const [dates, setDates] = useState([])
-    const [address, setAddress] = useState('')
-    const [previousDates, setPreviousDates] = useState([])
-    const [expirationDate, setExpirationDate] = useState('')
-    const [privOrPublic, setPrivOrPublic] = useState([false, false])
-    const [maxPeople, setMaxPeople] = useState('')
-    const [graphicSelector, switchSelector] = useState(false)
+    const form = props.form
+    const formExists = Object.keys(form).length
+    const [minDate, setMinDate] = useState(formExists ? formatDate(form.dates[0]) : '')
+    const [maxDate, setMaxDate] = useState(formExists ? formatDate(form.dates[form.dates.length - 1]) : '')
+    const [dates, setDates] = useState(formExists ? form.dates : [])
+    const [address, setAddress] = useState(formExists ? form.address : '')
+    const [expirationDate, setExpirationDate] = useState(formExists ? formatDate(form.selectionExpirationDate) : '')
+    const [privOrPublic, setPrivOrPublic] = useState(formExists ? (form.privateOrPublic === 'private' ? [true, false] : [false, true]) : [false, false])
+    const [maxPeople, setMaxPeople] = useState(formExists ? form.maximumPeople : '')
     
     const getGeoCode = async (address) => {
         try {
@@ -49,7 +51,7 @@ function Form(props) {
     }
 
     async function checkSubmission() {
-        if (maxPeople === '' || minDate === '' || maxDate === '' || !privOrPublic.includes(true) || address === '' || expirationDate === '') return
+        if (maxPeople === '' || minDate === '' || maxDate === '' || !privOrPublic.includes(true) || address === '' || (!decided && expirationDate === '')) return
 
         if (!decided && dates.length <= 1) {
             NotificationManager.warning('For the Undecided feature, at least two days must be selected.', '', 10000)
@@ -76,7 +78,15 @@ function Form(props) {
             expires = new Date(expirationDate + t)
         }
 
-        const latLng = await getGeoCode(address)
+        if (formExists) { // If the form exists, we can save Google API calls if someone goes back by checking if the address is the same
+            if (address.toLowerCase() === props.form.address.toLowerCase()) {
+                var latLng = props.form.latLng
+            } else {
+                var latLng = await getGeoCode(address)
+            }
+        } else {
+            var latLng = await getGeoCode(address)
+        }
 
         // Calendar dates are all in the time zone of the local machine of the user at 12 AM of each day.
         const form = {
@@ -187,29 +197,19 @@ function Form(props) {
         e.target.id === 'private' ? setPrivOrPublic([true, false]) : setPrivOrPublic([false, true])
     }
 
-    // Separate Comparator value
-
     return(
-        graphicSelector ?
-        <>
-        <button onClick={(e) => {
-            e.preventDefault()
-            setDates(previousDates)
-            switchSelector(false)
-        }}>⬅️</button>
-        <MultiCalendar dates={dates} setDates={setDates} switchSelector={switchSelector} getDates={getDates} minDate={minSelect}></MultiCalendar>
-        </>
-        :
         <>
         <NotificationContainer/>
         <button onClick={(e) => {
             e.preventDefault()
             props.setStep(0)
-        }}>⬅️</button>
+        }} className={fadeInUp}>⬅️</button>
         <form onSubmit={(e) => {
             e.preventDefault()
             checkSubmission()
-        }}>
+        }} className={fadeInUp}>
+            <h3>Fill in your {decided ? 'Decided ' : 'Undecided '} Event</h3>
+            <br></br>
             <input type='radio' id='private' name='privOrPublic' onChange={handleClick} checked={privOrPublic[0]}/>Private
             <input type='radio' id='public' name='privOrPublic' onChange={handleClick} checked={privOrPublic[1]}/>Public
             <label htmlFor='people' style={{paddingLeft: '20px', paddingRight: '5px'}}> Maximum Amount of People</label>
@@ -236,11 +236,7 @@ function Form(props) {
             <br></br><br></br>
             <button id='submit' type='submit' value='Submit'>Submit ➡️</button>
         </form>
-        <button onClick={(e) => {
-            e.preventDefault()
-            setPreviousDates(dates)
-            switchSelector(true)
-        }} style={{marginLeft: '10px'}}>📅 graphical selector</button>
+        <MultiCalendar dates={dates} setDates={setDates} getDates={getDates} minDate={minSelect}></MultiCalendar>
         </>
     )
 }
