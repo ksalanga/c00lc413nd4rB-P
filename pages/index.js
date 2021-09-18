@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import MainComponent from '../components/MainComponent'
+import MainPage from '../components/MainPage'
 import React from 'react'
 import Navbar from '../components/nav/Navbar'
 import nextConnect from 'next-connect'
@@ -13,7 +13,7 @@ export default function Home({ user }) {
         {process.browser && <script id='googleMaps' defer async src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBZ5KkgolEdqXA-8_fErDEbCY-fgDIeA-M&libraries=places' />}
       </Head>
       <Navbar user={ user }/>
-      <MainComponent />
+      <MainPage user={ user }/>
     </>
   )
 }
@@ -24,7 +24,14 @@ export async function getServerSideProps({ req, res }) {
   try {
     await handler.run(req, res)
     var user = req.session?.get('user')
-    if (user === {} || user === undefined) { user = null }
+    if (user === {} || user === undefined) { 
+      return {
+        redirect: {
+            destination: '/login',
+            permanent: false,
+        },
+      }  
+    }
 
     return { props: { user } }
   } catch (e) {
