@@ -21,19 +21,6 @@
   /* border: solid 1px; */
 }
 
-.liveEvents {
-  grid-column-start: 2;
-  grid-row-start: 1;
-  grid-row-end: 3;
-  background-color: purple;
-}
-
-.myEvents {
-  grid-column-start: 1;
-  grid-row-start: 2;
-  background-color: black;
-}
-
 .calendarType {
   border-radius: 10px;
   box-shadow: 2px 2px 2px;
