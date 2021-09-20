@@ -15,11 +15,12 @@ function Content({user, step, setStep, form, setForm, decided, setDecided}) {
   } else { // ** Post Form Data here **
     // UserCreated, Users, Address, TimeZone, DST
     // If user doesn't exist, save the form
-    const { timeZone, isLoading, isError } = FormSubmission(form)
+    const { isLoading, isError } = FormSubmission(user, form, decided)
 
-    if (isLoading) return ( <Loading />)
+    if (isLoading) return ( <Loading />) 
+    if (isError) return ( <div>Something went wrong on the server submitting your Calendar!</div> )
 
-    return(<Calendar/>)
+    return(<div><h1>GZ</h1><Calendar/></div>)
   }
 }
 
