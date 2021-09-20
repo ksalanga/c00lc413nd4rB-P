@@ -97,9 +97,8 @@ export default function CalendarForm(props) {
             privateOrPublic: privOrPublic[0] ? 'private' : 'public',
             dates: dates, 
             maximumPeople: maxPeople,
-            address: address,
+            address: {name: address, geoCode: latLng},
             selectionExpirationDate: expires,
-            latLng: latLng
         }
 
         // on Submit is going to fetch and POST to the MongoDB database.
