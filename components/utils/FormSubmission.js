@@ -7,7 +7,7 @@ const fetcher = async (user, form, decided, ...args) => {
         const submission = {...form,
             creator: user.id, 
             attendingUsers: [], 
-            decided: decidedOrUndecided,
+            decidedOrUndecided: decidedOrUndecided,
             address: {...form.address, 
                 timeZoneName: data.timeZoneName,
                 timeZoneId: data.timeZoneId,
