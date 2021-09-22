@@ -1,17 +1,20 @@
 import nc from 'next-connect'
-import {Client} from '@googlemaps/google-maps-services-js'
+import { Client } from '@googlemaps/google-maps-services-js'
 import CalendarDataModel from '../../../models/CalendarDataModel'
+import { geocode } from '@googlemaps/google-maps-services-js/dist/geocode/geocode'
 
 const handler = nc()
-const client = new Client()
+const googleMapsClient = new Client()
+const CDM = new CalendarDataModel()
 
 async function errorHandling(req, res) {
     const form = req.body
 
     const invalidFormatMessage = 
-    `Calendar Creation must have 9 Keys (case Sensitive):
-    name (String),
+    `Calendar Creation must have 10 Keys (case Sensitive):
+    name (String)
     creator (String)
+    localLocation (String)
     decidedOrUndecided (JSON Object)
     privateOrPublic (String)
     maximumPeople (String)
@@ -24,13 +27,13 @@ async function errorHandling(req, res) {
         throw 'Content Type must be application/json'
     }
 
-    if (Object.keys((form)).length !== 9) {
-        res.statusCode = 400
+    if (Object.keys(form).length !== 10) {
         throw invalidFormatMessage
     }
 
     if (form['name'] === undefined
     || form['creator'] === undefined
+    || form['localLocation'] === undefined
     || form['decidedOrUndecided'] === undefined
     || form['privateOrPublic'] === undefined
     || form['maximumPeople'] === undefined
@@ -44,6 +47,7 @@ async function errorHandling(req, res) {
     // Incorrect Types for keys
     if (typeof(form['name']) !== 'string'
     || typeof(form['creator']) !== 'string'
+    || typeof(form['localLocation']) !== 'string'
     || typeof(form['decidedOrUndecided']) !== 'object'
     || typeof(form['privateOrPublic']) !== 'string'
     || typeof(form['maximumPeople']) !== 'string'
@@ -54,6 +58,68 @@ async function errorHandling(req, res) {
     || typeof(form['address']) !== 'object') {
         throw invalidFormatMessage
     }
+
+    // get the geoCode of the local Location
+    const geoCodeResponse = await googleMapsClient
+    .geocode({
+        params: { address: form['localLocation'],
+        key: process.env.GOOGLE_MAPS_KEY }
+    })
+
+    if (geoCodeResponse.data.status !== 'OK') {
+        throw 'Invalid local Location request'
+    }
+
+    // We get the UTC version of today.
+    const today = new Date()
+
+    const localLocationGeocode = geoCodeResponse.data.results[0].geometry.location
+    // get the TimeZone Offset of the user's local location
+    const timeZoneResponse = await googleMapsClient
+    .timezone({
+        params: { location: localLocationGeocode,
+        timestamp: today.getTime() * .001,
+        key: process.env.GOOGLE_MAPS_KEY } //timestamp ought to be in seconds
+    })
+
+    if (timeZoneResponse.data.status !== 'OK') {
+        throw 'Invalid local Location request (due to GeoCoding API)'
+    }
+
+    // How do we get their today? 
+    // just use the current getTime of Today, but we've to account for the current timeZone of the server and the timeZone of the client
+    // we have to close in and find their Today of 12 AM in relation to this Computer's timeZone and their offset.
+    // Standardize to UTC 0th of that day, if computer is 4 hours behind,
+    const localTimezoneData = timeZoneResponse.data
+    // responds with:
+        // dstOffset (int) seconds
+        // rawOffset (int) seconds
+        // status
+        // timeZoneId (String)
+        // timeZoneName (String)
+    
+    // We shift the current UTC hours by the timeZone shift of the user's local timeZone.
+    const timeShift = (localTimezoneData.dstOffset / (3600)) + (localTimezoneData.rawOffset / (3600))
+    today.setHours(today.getHours() + timeShift)
+
+    // this const returns the Local Today at 12AM which will be used as the lower limit for filtering dates less than the local "today"
+    // How? First:
+    // It should be a UTC date, and if the day, month, and/or year has changed, it has been accounted for because of the time Zone Hour Shift
+    // Now, we just add the Hour value to the UTC date as opposite of the timeShift and zero any lower units
+    // so that we are at 12AM of what the localUser perceives as today
+    const todayInLocalTime = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), (timeShift * -1)))
+
+    // In theory, if a user inputs a date in the dates array that is considered today at 12AM in their local time, 
+    // but that time is technically behind the current getTime(),
+    // the server won't cut off that day.
+
+    // One question: timeZone changes, how does this play into the LocalTime, might it go backwards in time and be a day behind at 12AM with all these shifts?
+    // Even if a timeZone Changes mid request, the inconsistent hours shouldn't be a problem. 
+    // proof:
+    // If the stale time is greater than the real timeShift by X, the actual time has Shifted by X * -1,
+    // So even if realTimeShift - staleTimeShift = -X, the Time itself has moved forward by +X (That's just how timezones work).
+    // so the net change remains 0, and we still land at 12AM of that day.
+    // therefore, a shift in TimeZone won't cause a day change even with stale values.
 
     const decidedOrUndecided = form['decidedOrUndecided']
     // Format for decided must be { decided: null } or { undecided : { confirmed : false }}
@@ -99,36 +165,33 @@ async function errorHandling(req, res) {
     for (var date in form['dates']) {
         if (!(date instanceof Date)) {
             throw `Dates array must have Date Objects only`
-        } else if (isNaN(date.getTime())){
+        } else if (isNaN(date.getTime())) {
             throw 'Invalid Date Format for a date in the dates Array'
         }
     }
 
-    // Mental Note for later: think about how changes in timeZone across the dates array will affect our filtering and error handling.
+    if (form['decidedOrUndecided']['decided']) { // Since Decided includes today, the todayInLocalTime at 12AM variable is used.
+        var datesGreaterThanMinDate = form['dates'].filter(date => date.getTime() >= todayInLocalTime.getTime())
+    } else { // For undecided, minimum Date must be at least 23 hours ahead of right now in time.
+        today.setHours(today.getHours() - timeShift)
+        today.setHours(today.getHours() + 23)
+        var datesGreaterThanMinDate = form['dates'].filter(date => date.getTime() >= today.getTime())
+    }
 
-    // Array of Date Values that are greater than or equal to today.
-    // just compare Month, Date, and Year rather than time.
-    // Must Standardize Today though to the actual Today of the Local TimeZone. Might be the 10th in Server's Date but the 9th in the User's Date.
-    // So a date in the 9th, which they added as a date, should have been accounted for.
-    // We've to ask the TimeZone.
-    const datesGreaterThanToday = form['dates'].filter(date => date.getTime() >= new Date().getTime())
-    // Revise THIS METHOD ^^^^, but filter in general.
-
-    if (datesGreaterThanToday.length === 0) {
+    if (datesGreaterThanMinDate.length === 0) {
         throw 'Must have at least One Date in the Dates Array (Two if it\'s an undecided Calendar)'
     }
 
-    if (datesGreaterThanToday.length < 2 && decidedOrUndecided['undecided']) {
+    if (datesGreaterThanMinDate.length < 2 && decidedOrUndecided['undecided']) {
         throw 'An Undecided Calendar must have at least valid 2 dates in the dates array'
     }
-    datesGreaterThanToday.sort((a, b)=>{return a.getTime() - b.getTime()})
+    datesGreaterThanMinDate.sort((a, b)=>{return a.getTime() - b.getTime()})
 
-    // Anything with new Date() aka. Today requires tweaking because the time isn't 0'ed in hours, mins, seconds, and it isn't 12 am of the user's local comp.
     // checks if Undecided first because if it's decided, then selectionExpirationDate will be null, if undecided is false, skips that && logic.
     if (decidedOrUndecided['undecided'] 
-    && (form['selectionExpirationDate'].getTime() > datesGreaterThanToday[0].getTime()
-    || form['selectionExpirationDate'].getTime() < new Date().getTime())) {
-        throw 'selectionExpirationDate must be less than the Minimum selection Date and greater than Today'
+    && (form['selectionExpirationDate'].getTime() > datesGreaterThanMinDate[0].getTime() // If the expiration Date is greater than the minimum date.
+    || form['selectionExpirationDate'].getTime() < (today.getTime()))) { // If the expiration Date is less than right now + 23 hours.
+        throw 'selectionExpirationDate must be less than the Minimum selection Date and greater than Today by at least 23 hours'
     }
     
     // Format attendingUsers length must be 0
@@ -160,7 +223,7 @@ handler.post(async (req, res) => {
     try {
         await errorHandling(req, res)
     } catch (err) {
-        res.end(err)
+        res.status(400).end(err)
         return
     }
 })
