@@ -24,6 +24,7 @@ export default function CalendarForm(props) {
     const [privOrPublic, setPrivOrPublic] = useState(formExists ? (form.privateOrPublic === 'private' ? [true, false] : [false, true]) : [false, false])
     const [maxPeople, setMaxPeople] = useState(formExists ? form.maximumPeople : '')
     
+    // This soon might not be needed.
     const getGeoCode = async (address) => {
         try {
             const results = await geocodeByAddress(address)
@@ -94,10 +95,12 @@ export default function CalendarForm(props) {
 
         // Calendar dates are all in the time zone of the local machine of the user at 12 AM of each day.
         const form = {
+            localLocation: Intl.DateTimeFormat().resolvedOptions().timeZone,
             privateOrPublic: privOrPublic[0] ? 'private' : 'public',
             dates: dates, 
             maximumPeople: maxPeople,
-            address: {name: address, geoCode: latLng},
+            // geoCode key might not be needed.
+            address: {name: address, geoCode: latLng}, 
             selectionExpirationDate: expires,
         }
 
