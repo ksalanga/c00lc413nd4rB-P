@@ -1,17 +1,46 @@
 import nc from 'next-connect'
 import { Client } from '@googlemaps/google-maps-services-js'
 import CalendarDataModel from '../../../models/CalendarDataModel'
-import { geocode } from '@googlemaps/google-maps-services-js/dist/geocode/geocode'
 
 const handler = nc()
 const googleMapsClient = new Client()
 const CDM = new CalendarDataModel()
 
-async function errorHandling(req, res) {
-    const form = req.body
+async function addressTimezoneProvider(address, timestamp) {
+    // get the geoCode of the location
+    const geoCodeResponse = await googleMapsClient
+    .geocode({
+        params: { address: address,
+        key: process.env.GOOGLE_MAPS_KEY }
+    })
 
+    if (geoCodeResponse.data.status !== 'OK') {
+        throw 'Invalid local Location request'
+    }
+
+    const localLocationGeocode = geoCodeResponse.data.results[0].geometry.location
+
+    // get the TimeZone Offset of the user's local location
+    const timeZoneResponse = await googleMapsClient
+    .timezone({
+        params: { location: localLocationGeocode,
+        timestamp: timestamp,
+        key: process.env.GOOGLE_MAPS_KEY } //timestamp ought to be in seconds
+    })
+
+    const timeZoneData = timeZoneResponse.data
+
+    if (timeZoneData.status !== 'OK') {
+        throw 'Invalid local Location request (due to GeoCoding API)'
+    }
+
+    return timeZoneData
+}
+
+async function formatHandling(form) {
     const invalidFormatMessage = 
-    `Calendar Creation must have 10 Keys (case Sensitive):
+    `INVALID FORMATTING:
+    Calendar Creation must have 10 Keys (case Sensitive):
     name (String)
     creator (String)
     localLocation (String)
@@ -58,69 +87,56 @@ async function errorHandling(req, res) {
     || typeof(form['address']) !== 'object') {
         throw invalidFormatMessage
     }
+}
 
-    // get the geoCode of the local Location
-    const geoCodeResponse = await googleMapsClient
-    .geocode({
-        params: { address: form['localLocation'],
-        key: process.env.GOOGLE_MAPS_KEY }
-    })
-
-    if (geoCodeResponse.data.status !== 'OK') {
-        throw 'Invalid local Location request'
-    }
-
-    // We get the UTC version of today.
-    const today = new Date()
-
-    const localLocationGeocode = geoCodeResponse.data.results[0].geometry.location
-    // get the TimeZone Offset of the user's local location
-    const timeZoneResponse = await googleMapsClient
-    .timezone({
-        params: { location: localLocationGeocode,
-        timestamp: today.getTime() * .001,
-        key: process.env.GOOGLE_MAPS_KEY } //timestamp ought to be in seconds
-    })
-
-    if (timeZoneResponse.data.status !== 'OK') {
-        throw 'Invalid local Location request (due to GeoCoding API)'
-    }
-
-    // How do we get their today? 
-    // just use the current getTime of Today, but we've to account for the current timeZone of the server and the timeZone of the client
-    // we have to close in and find their Today of 12 AM in relation to this Computer's timeZone and their offset.
-    // Standardize to UTC 0th of that day, if computer is 4 hours behind,
-    const localTimezoneData = timeZoneResponse.data
-    // responds with:
-        // dstOffset (int) seconds
-        // rawOffset (int) seconds
-        // status
-        // timeZoneId (String)
-        // timeZoneName (String)
+async function localTimeZoneHandling(form) {
+    try {
+        const today = new Date()
+        const localTimezoneData = await addressTimezoneProvider(form['localLocation'], today.getTime() * .001)
+        
+        // append localTimezoneData to form['localLocation']
+        form['localLocation'] = {
+            name: form['localLocation'],
+            geocode: localLocationGeocode,
+            timestamp: today.getTime() * .001,
+            ...localTimezoneData
+        }
     
-    // We shift the current UTC hours by the timeZone shift of the user's local timeZone.
-    const timeShift = (localTimezoneData.dstOffset / (3600)) + (localTimezoneData.rawOffset / (3600))
-    today.setHours(today.getHours() + timeShift)
+        // We shift the today's UTC hours by the timeZone shift of the user's local timeZone.
+        const timeShift = (localTimezoneData.dstOffset / (3600)) + (localTimezoneData.rawOffset / (3600))
+        today.setHours(today.getHours() + timeShift)
+    
+        // this const returns the Local Today at 12AM which will be used as the lower limit for filtering dates less than the local "today"
+        // How? First:
+        // It should be a UTC date, and if the day, month, and/or year has changed, it has been accounted for because of the time Zone Hour Shift
+        // Now, we just add the Hour value to the UTC date as opposite of the timeShift and zero any lower units
+        // so that we are at 12AM of what the localUser perceives as today
+        const todayInLocalTime = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), (timeShift * -1)))
+        
+        // In theory, if a user inputs a date in the dates array that is considered today at 12AM in their local time, 
+        // but that time is technically behind the current getTime(),
+        // the server won't cut off that day.
+    
+        // One question: timeZone changes, how does this play into the LocalTime, might it go backwards in time and be a day behind at 12AM with all these shifts?
+        // Even if a timeZone Changes mid request, the inconsistent hours shouldn't be a problem. 
+        // proof:
+        // If the stale time is greater than the real timeShift by X, the actual time has Shifted by X * -1,
+        // So even if realTimeShift - staleTimeShift = -X, the Time itself has moved forward by +X (That's just how timezones work).
+        // so the net change remains 0, and we still land at 12AM of that day.
+        // therefore, a shift in TimeZone won't cause a day change even with stale values.
+    
+        return { 
+            today: today,
+            todayInLocalTime: todayInLocalTime,
+            timeShift: timeShift
+        }
+    } catch (err) {
+        throw error
+    }
 
-    // this const returns the Local Today at 12AM which will be used as the lower limit for filtering dates less than the local "today"
-    // How? First:
-    // It should be a UTC date, and if the day, month, and/or year has changed, it has been accounted for because of the time Zone Hour Shift
-    // Now, we just add the Hour value to the UTC date as opposite of the timeShift and zero any lower units
-    // so that we are at 12AM of what the localUser perceives as today
-    const todayInLocalTime = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), (timeShift * -1)))
+}
 
-    // In theory, if a user inputs a date in the dates array that is considered today at 12AM in their local time, 
-    // but that time is technically behind the current getTime(),
-    // the server won't cut off that day.
-
-    // One question: timeZone changes, how does this play into the LocalTime, might it go backwards in time and be a day behind at 12AM with all these shifts?
-    // Even if a timeZone Changes mid request, the inconsistent hours shouldn't be a problem. 
-    // proof:
-    // If the stale time is greater than the real timeShift by X, the actual time has Shifted by X * -1,
-    // So even if realTimeShift - staleTimeShift = -X, the Time itself has moved forward by +X (That's just how timezones work).
-    // so the net change remains 0, and we still land at 12AM of that day.
-    // therefore, a shift in TimeZone won't cause a day change even with stale values.
-
+function decidedOrUndecidedHandling(form) {
     const decidedOrUndecided = form['decidedOrUndecided']
     // Format for decided must be { decided: null } or { undecided : { confirmed : false }}
     if (decidedOrUndecided['undecided'] === undefined 
@@ -159,7 +175,9 @@ async function errorHandling(req, res) {
     } else if (isNaN(form['selectionExpirationDate'].getTime())) {
         throw 'If the calendar is undecided, the form\'s selectionExpirationDate value must be a valid Date'
     }
+}
 
+function datesHandling(form, today, todayInLocalTime, timeShift) {
     // Format for Array of Dates: If every instance of that Object isn't a date, invalid.
     // If Date is Invalid, invalid
     for (var date in form['dates']) {
@@ -193,15 +211,31 @@ async function errorHandling(req, res) {
     || form['selectionExpirationDate'].getTime() < (today.getTime()))) { // If the expiration Date is less than right now + 23 hours.
         throw 'selectionExpirationDate must be less than the Minimum selection Date and greater than Today by at least 23 hours'
     }
-    
-    // Format attendingUsers length must be 0
-    if (form['attendingUsers'].length !== 0) {
-        throw 'attendingUsers must be an empty array to start'
+}
+
+async function eventTimeZoneHandling(form) {
+    // form['address']['name'], form['dates'][0].getTime() * .001 
+    if (form['address']['name'] === undefined || Object.keys(form['address']).length !== 1) {
+        throw `address key must have one value and it should be an object:
+        {name: name of event}`
     }
 
-    // Call the Google TimeZone and geocode APIs here rather than in the React Components.
+    try {
+        const eventTimeZoneData = addressTimezoneProvider(form['address']['name'], form['dates'][0].getTime() * .001)
+        
+        if (eventTimeZoneData.status !== 'OK') {
+            throw 'Invalid local Location request (due to GeoCoding API)'
+        }
+    
+        // append to eventAddress
+        form['address'] = {eventTimeZoneData, ...form['address']}
+    } catch (err) {
+        throw err
+    }
+    // If it's undecided we wait for a confirmtion and then call the eventGeocodingAndTimeZone Handling,
 
-    // If it's an invalid Address that's given or the geoCode responds with nothing, then the address doesn't exist
+    // for now though, on create Calendar we only add this field for a decided event and input the time stamp as the first date
+    // and naively make it the time of the earliest date, but later we're going to add a start and end time key, so use start time.
 
     // Format address:
         // must have:
@@ -216,7 +250,26 @@ async function errorHandling(req, res) {
         // timeZoneId
         // rawOffset
         // dstOffset
-    
+}
+
+async function errorHandling(req, res) {
+    const form = req.body
+
+    try {
+        formatHandling(form)
+        const { today, todayInLocalTime, timeShift } = await localTimeZoneHandling(form)
+        decidedOrUndecidedHandling(form)
+        datesHandling(form, today, todayInLocalTime, timeShift)
+        if (form['attendingUsers'].length !== 0) {
+            throw 'attendingUsers must be an empty array to start'
+        }
+        
+        // THE ADDRESSTIMEZONE PROVIDER TIMESTAMP FOR EVENTIMEZONE IS WRONG. CHANGE THAT LATER TO TIMESTAMP BASED ON THE "BEGIN TIME OF THE EARLIEST DATE".
+        // NOT JUST SIMPLY THE EARLIEST DATE BECAUSE THE EARLIEST DATE ISNT NECESSARILY FORMATTED TO BE THE BEGIN TIME
+        await eventTimeZoneHandling(form)
+    } catch (err) {
+        throw err
+    }
 }
 
 handler.post(async (req, res) => {
