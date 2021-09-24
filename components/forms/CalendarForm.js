@@ -224,6 +224,8 @@ export default function CalendarForm(props) {
             <label htmlFor='startDay' style={{paddingRight: '5px'}}>Start Date</label>
             <input type='date' id='startDay' value={displayMin} min={minSelect} onBlur={handleChange} onChange={(e) => setDisplayMin(e.target.value)} onKeyPress={(e) => {if (e.code === 'Enter') handleChange(e)}}/>
             
+            {/* For a decided event, add the beginning time and end time */}
+                        
             { minDate != '' &&
                 <>
                     <label htmlFor='endDay' style={{marginLeft: '10px', paddingRight: '5px'}}>End Date</label>
