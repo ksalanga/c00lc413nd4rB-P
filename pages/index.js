@@ -6,11 +6,13 @@ import nextConnect from 'next-connect'
 import authenticate from '../middleware/authenticate'
 
 export default function Home({ user }) {
+  const googleMapsScript = process.browser && <script id='googleMaps' defer async src={`https://maps.googleapis.com/maps/api/js?key=${process.env.GOOGLE_MAPS_KEY}&libraries=places`}/>
+  
   return (
     <>
       <Head>
         <title>Calendar</title>
-        {process.browser && <script id='googleMaps' defer async src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBZ5KkgolEdqXA-8_fErDEbCY-fgDIeA-M&libraries=places' />}
+        {googleMapsScript}
       </Head>
       <Navbar user={ user }/>
       <MainPage user={ user }/>
