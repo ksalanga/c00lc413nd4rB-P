@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@google-cloud/storage": "^5.14.2",
-    "@googlemaps/google-maps-services-js": "^3.1.16",
+    "@google-cloud/storage": "^5.14.3",
+    "@googlemaps/google-maps-services-js": "^3.2.2",
     "bcrypt": "^5.0.1",
     "bootstrap": "^5.1.1",
     "mongodb": "^4.1.2",
