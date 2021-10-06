@@ -1,10 +1,19 @@
 import nc from 'next-connect'
 import { Client } from '@googlemaps/google-maps-services-js'
 import CalendarDataModel from '../../../models/CalendarDataModel'
+import { ironSession } from 'next-iron-session'
 
 const handler = nc()
 const googleMapsClient = new Client()
 const CDM = new CalendarDataModel()
+
+const session = ironSession({
+    password: process.env.ironSessionPassword,
+    cookieName: "calendar.sid",
+    cookieOptions: {
+      secure: process.env.NODE_ENV === "production",
+    }
+})
 
 async function addressTimezoneProvider(address, timestamp) {
     // get the geoCode of the location
@@ -272,7 +281,7 @@ async function errorHandling(req, res) {
     }
 }
 
-handler.post(async (req, res) => {
+handler.use(session).post(async (req, res) => {
     try {
         await errorHandling(req, res)
     } catch (err) {
