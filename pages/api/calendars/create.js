@@ -46,7 +46,7 @@ async function addressTimezoneProvider(address, timestamp) {
     return timeZoneData
 }
 
-async function formatHandling(form) {
+async function createCalendarWithAPIKey(form) {
     const invalidFormatMessage = 
     `INVALID FORMATTING:
     Calendar Creation must have 10 Keys (case Sensitive):
@@ -59,13 +59,14 @@ async function formatHandling(form) {
     selectionExpirationDate (Date if Undecided, NULL if decided)
     dates (Array of dates)
     attendingUsers (array)
-    address (JSON object)`
+    address (JSON object)
+    key (String)`
 
     if (contentType === undefined || contentType !== 'application/json') {
         throw 'Content Type must be application/json'
     }
 
-    if (Object.keys(form).length !== 10) {
+    if (Object.keys(form).length !== 11) {
         throw invalidFormatMessage
     }
 
@@ -78,7 +79,8 @@ async function formatHandling(form) {
     || form['selectionExpirationDate'] === undefined
     || form['dates'] === undefined
     || form['attendingUsers'] === undefined
-    || form['address'] === undefined) {
+    || form['address'] === undefined
+    || form['key'] === undefined) {
         throw invalidFormatMessage
     }
     
@@ -93,9 +95,19 @@ async function formatHandling(form) {
         && form['selectionExpirationDate'] !== null)
     || Array.isArray(form['dates'])
     || Array.isArray(form['attendingUsers'])
-    || typeof(form['address']) !== 'object') {
+    || typeof(form['address']) !== 'object'
+    || typeof(form['key']) !== 'string') {
         throw invalidFormatMessage
     }
+
+    if (!isValidKey(form['key'])) {
+        throw 'Invalid Key'
+    }
+}
+
+async function isValidKey(key) {
+    // Access Database
+    // If a key exists, tag it to user.
 }
 
 async function localTimeZoneHandling(form) {
@@ -265,7 +277,9 @@ async function errorHandling(req, res) {
     const form = req.body
 
     try {
-        formatHandling(form)
+        if (req.session?.get('user') === undefined) {
+            createCalendarWithAPIKey(form)
+        }
         const { today, todayInLocalTime, timeShift } = await localTimeZoneHandling(form)
         decidedOrUndecidedHandling(form)
         datesHandling(form, today, todayInLocalTime, timeShift)
