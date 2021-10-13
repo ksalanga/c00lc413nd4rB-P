@@ -3,10 +3,54 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import animationStyles from '../styles/animations.module.css'
 
-const dateAlreadyClicked = (dates, date) => dates.some(d => new Date(date).getTime() === new Date(d).getTime())
-const datesExcept = (dates, date) => dates.filter(d => !(new Date(date).getTime() === new Date(d).getTime()))
+const dateAlreadyClicked = (dates, tileDate) => {
+  return dates.some(date => 
+  {
+    const matchingDay = tileDate.getDate() === date.getDate()
+    const matchingMonth = tileDate.getMonth() === date.getMonth()
+    const matchingYear = tileDate.getFullYear() === date.getFullYear()
 
-export default function MultiCalendar(props) {
+    return  matchingDay &&
+    matchingMonth &&
+    matchingYear
+  })
+}
+
+// if a date is clicked, it must compare if the time sensitive dates array (one we're actually submitting)
+// matches via the day, month, and year (not time), because the date clicked is 12am of
+// the time zone of the client. 
+// In our original implementation, we only used .getTime for comparison
+// So even if they have matching days, months, and year, the hours, minutes seconds time values might be different
+// so it might not actually remove it from the 
+// time sensitive dates array because we were originally comparing strictly with UTC time.
+
+const datesExcept = (dates, tileDate) => {
+  return dates.filter(date => {
+    const matchingDay = tileDate.getDate() !== date.getDate()
+    const matchingMonth = tileDate.getMonth() !== date.getMonth()
+    const matchingYear = tileDate.getFullYear() !== date.getFullYear()
+
+    return  matchingDay ||
+    matchingMonth ||
+    matchingYear
+  })
+}
+
+export function formatDate(date) {
+  var d = new Date(date),
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear()
+
+  if (month.length < 2) 
+      month = '0' + month
+  if (day.length < 2) 
+      day = '0' + day
+
+  return [year, month, day].join('-')
+}
+
+export function MultiCalendar(props) {
   const fadeInUp = animationStyles.animated + ' ' + animationStyles.animatedFadeInUp + ' ' + animationStyles.fadeInUp
   const dates = props.dates
   const setDates = props.setDates
@@ -89,9 +133,11 @@ export default function MultiCalendar(props) {
 
   const deselect = (buttons) => {
     // clears the active style when you deselect a date.
-    var dateTimes = dates.map(day => day.getTime())
+    // now do it based off of date, month, and year rather than with time.
+    // this way, we can include dates with hours, minutes, and seconds that aren't zero.
+    var dateTimes = dates.map(day => formatDate(day))
     for (var i = 0; i < buttons.length; i++) {
-      var currentDate = new Date(buttons[i].firstChild.getAttribute('aria-label')).getTime()
+      var currentDate = formatDate(new Date(buttons[i].firstChild.getAttribute('aria-label')))
       if (dateTimes.indexOf(currentDate) == -1) {
         var removeActive = buttons[i].getAttribute('class').replaceAll(' react-calendar__tile--active', '')
         buttons[i].setAttribute('class', removeActive)
@@ -161,7 +207,8 @@ export default function MultiCalendar(props) {
         maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 100))}
         tileClassName={({date}) => {
           if (dateAlreadyClicked(dates, date)) {
-          return 'react-calendar__tile--active'}
+            return 'react-calendar__tile--active'
+          }
         }}
         // max Date is always set to 100 years ahead of today
       />

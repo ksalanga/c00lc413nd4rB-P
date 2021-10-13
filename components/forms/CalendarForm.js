@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import Image from 'next/image'
-import MultiCalendar from '../MultiCalendar'
+import { MultiCalendar, formatDate } from '../MultiCalendar.js'
 import AutoComplete from '../utils/AutoComplete'
 import { getLatLng, geocodeByAddress } from 'react-places-autocomplete'
 import { NotificationContainer, NotificationManager } from 'react-notifications'
@@ -298,18 +298,4 @@ export function CalendarNameStep({setStep, setForm, form, step}) {
         </div>
     </>
     )
-}
-
-function formatDate(date) {
-    var d = new Date(date),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear()
-
-    if (month.length < 2) 
-        month = '0' + month
-    if (day.length < 2) 
-        day = '0' + day
-
-    return [year, month, day].join('-')
 }
