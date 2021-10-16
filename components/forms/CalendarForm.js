@@ -9,6 +9,8 @@ import styles from '../../styles/Home.module.css'
 import animationStyles from '../../styles/animations.module.css'
 import undecidedCalendar from '../../public/undecidedCalendar.svg'
 import decidedCalendar from '../../public/date.svg'
+import { add, format } from 'date-fns'
+
 const fadeInUp = animationStyles.animated + ' ' + animationStyles.animatedFadeInUp + ' ' + animationStyles.fadeInUp
 
 export default function CalendarForm(props) {
@@ -19,7 +21,7 @@ export default function CalendarForm(props) {
     const [minDate, setMinDate] = useState(formExists ? formatDate(form.dates[0]) : '')
     const [maxDate, setMaxDate] = useState(formExists ? formatDate(form.dates[form.dates.length - 1]) : '')
     const [dates, setDates] = useState(formExists ? form.dates : [])
-    const [address, setAddress] = useState(formExists ? form.address : '')
+    const [address, setAddress] = useState(formExists ? form.address.name : '')
     const [expirationDate, setExpirationDate] = useState(formExists ? formatDate(form.selectionExpirationDate) : '')
     const [privOrPublic, setPrivOrPublic] = useState(formExists ? (form.privateOrPublic === 'private' ? [true, false] : [false, true]) : [false, false])
     const [maxPeople, setMaxPeople] = useState(formExists ? form.maximumPeople : '')
@@ -62,29 +64,21 @@ export default function CalendarForm(props) {
             NotificationManager.warning('For the Undecided feature, at least two days must be selected.', '', 10000)
             return
         }
+
         // If date is decided, there isn't an expiration date for user editing.
         var expires
         if (decided) {
+            // need to instances of the same date so that we have a start and end time
+            if (dates.length === 1) {
+                dates.push(dates[0])
+            }
             expires = null
-        } else if (parseInt(expirationDate.split('-')[2]) === parseInt(minSelect.split('-')[2])) { // parses Day from ISO String
-            // Hours must be precise for this case:
-            // If the expiration date is tomorrow (minSelect) and it is undecided
-            // Reason: If someone is editing this form today, but today is at 11:59 PM.
-            // Since most of my new Date JS functions are 0'ing out the hours,
-            // Just using the selected Tomorrow Value will also 0 out the date times.
-            // If this is the case, users who want to add their available dates only have 1 minute.
-            // So, we must take the precise time of today including hours, minutes and seconds, so that an actual 24 hours is added.
-            // This line does exactly that by making today the new Date and adding one day. (A date with no 0ing of hours, minutes, seconds)
-    
-            expires = today.addDays(1)
         } else {
-            // Every other expiration date can have an expiration date with only the highest order of precision being the day.
-            // All lower time values (hours, minutes, seconds) are 0.
             expires = new Date(expirationDate + t)
         }
 
         if (formExists) { // If the form exists, we can save Google API calls if someone goes back by checking if the address is the same
-            if (address.toLowerCase() === props.form.address.toLowerCase()) {
+            if (address.toLowerCase() === props.form.address.name.toLowerCase()) {
                 var latLng = props.form.latLng
             } else {
                 var latLng = await getGeoCode(address)
@@ -95,7 +89,7 @@ export default function CalendarForm(props) {
 
         // Calendar dates are all in the time zone of the local machine of the user at 12 AM of each day.
         const form = {
-            localLocation: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            localTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             privateOrPublic: privOrPublic[0] ? 'private' : 'public',
             dates: dates, 
             maximumPeople: maxPeople,
@@ -104,7 +98,6 @@ export default function CalendarForm(props) {
             selectionExpirationDate: expires,
         }
 
-        // on Submit is going to fetch and POST to the MongoDB database.
         props.submit(form)
         props.next()
     }
@@ -114,12 +107,12 @@ export default function CalendarForm(props) {
     const [displayExp, setDisplayExp] = useState('')
 
     useEffect(() => {
-        if (dates.length == 0) {
+        if (dates.length === 0) {
             setMinDate('')
             setDisplayMin('')
             setMaxDate('')
             setDisplayMax('')
-        } else if (dates.length == 1) {
+        } else if (dates.length === 1) {
             const singleDay = formatDate(dates[0])
             setMinDate(singleDay)
             setDisplayMin(singleDay)
@@ -156,10 +149,6 @@ export default function CalendarForm(props) {
         }
     }, [minDate])
 
-    // If start date, expiration date, or end date are typed, we have to set boundaries:
-    // start date: if value.getTime() < TODAY, don't setMinDate
-    // end date: if value.getTime() < minDate, don't setMaxDate
-    // expiration Date, if expiration Date.getTime() < TODAY or greater than minDate, don't set Expiration Date
     const handleChange = e => {
         const selectedDate = e.target.value
         const newDate = new Date(selectedDate + t)
@@ -253,28 +242,129 @@ export function CalendarSelectionStep({step, setStep, setDecided}) {
     return (
     <>
         <span className={styles.calendarType + ' ' + styles.dateWrap} onClick={() => {
-        setStep(step + 1)
-        setDecided(false)
+            setStep(step + 1)
+            setDecided(false)
         }}>
-        <Image src={undecidedCalendar} width='90%' height='90%'></Image>
-        <div className={styles.dateDescriptionLayer} style={{color: "red"}}>
-            <p className={styles.dateDescription}>Event Date is NOT yet Decided</p>
-        </div>
+            <Image src={undecidedCalendar} width='90%' height='90%'></Image>
+            <div className={styles.dateDescriptionLayer} style={{color: "red"}}>
+                <p className={styles.dateDescription}>Event Date is NOT yet Decided</p>
+            </div>
         </span>
         <span className={styles.calendarType + ' ' + styles.dateWrap} onClick={() => {
-        setStep(step + 1)
-        setDecided(true)
+            setStep(step + 1)
+            setDecided(true)
         }}>
-        <Image src={decidedCalendar} width='90%' height='90%'></Image>
-        <div className={styles.dateDescriptionLayer} style={{color: "rgb(20, 201, 140)"}}>
-            <p className={styles.dateDescription}>Event Date has been Decided</p>
-        </div>
+            <Image src={decidedCalendar} width='90%' height='90%'></Image>
+            <div className={styles.dateDescriptionLayer} style={{color: "rgb(20, 201, 140)"}}>
+                <p className={styles.dateDescription}>Event Date has been Decided</p>
+            </div>
         </span>
     </>
     )
 }
+
+export function DatesTimeStep({form, setForm, step, setStep, decided}) {
+    const startDate = form['dates'][0], startDateString = format(startDate, 'MMMM d, yyyy')
+    const endDate = form['dates'][form['dates'].length - 1], endDateString = format(endDate, 'MMMM d, yyyy')
+    const expirationDate = form['selectionExpirationDate'], expirationDateString = expirationDate ? format(expirationDate, 'MMMM d, yyyy') : ''
+
+    const [startTime, setStartTime] = useState('')
+    const [endTime, setEndTime] = useState('')
+    const [expirationTime, setExpirationTime] = useState('')
+    const padding = { marginLeft: '12px', paddingRight: '10px' }
+
+    const checkSubmission = () => {
+        if (startTime === '' || endTime === '' || (!decided && expirationTime === '')) {
+            return
+        }
+
+        const startDateWithTime = add(startDate, {
+            hours: parseInt(startTime.split(':')[0]),
+            minutes: parseInt(startTime.split(':')[1])
+        })
+
+        if (startDateWithTime.getTime() < new Date().getTime()) {
+            NotificationManager.warning('Begin time must be greater than the time right now', '', 10000)
+            return
+        }
+
+        const endDateWithTime = add(endDate, {
+            hours: parseInt(endTime.split(':')[0]),
+            minutes: parseInt(endTime.split(':')[1])
+        })
+
+        if (startDateWithTime.getTime() > endDateWithTime.getTime()) {
+            NotificationManager.warning('Begin time must be less than the end time', '', 10000)
+            return
+        }
+
+        var datesWithTime = form['dates'] // accessing this part of the form should be fine
+        // form dates values won't mutate unless we tell react to update the state using setForm
+        // so getting these array values is still technically creating a copy
+        datesWithTime[0] = startDateWithTime 
+        datesWithTime[datesWithTime.length - 1] = endDateWithTime
+        if (!decided) {
+            const expirationDateWithTime = add(expirationDate, {
+                hours: parseInt(expirationTime.split(':')[0]),
+                minutes: parseInt(expirationTime.split(':')[1])
+            })
+
+            if (expirationDateWithTime.getTime() < new Date().getTime()) {
+                NotificationManager.warning('Expiration time must be greater than the time right now', '', 10000)
+                return
+            }
+
+            if (expirationDateWithTime.getTime() > startDateWithTime.getTime()) {
+                NotificationManager.warning('Expiration time must be less than begin time', '', 10000)
+                return
+            }
+
+            setForm({...form, dates: datesWithTime, selectionExpirationDate: expirationDateWithTime}) 
+        } else {
+            setForm({...form, dates: datesWithTime})
+        }
+
+        setStep(step + 1)
+    }
+
+    return (
+        <>
+        <NotificationContainer/>
+        <button onClick={(e) => {
+            e.preventDefault()
+            setStep(1)
+        }} className={fadeInUp}>⬅️</button>
+        <div className={fadeInUp}>
+            
+            <h2>Time to decide on the time! ;)</h2>
+            <br></br>
+            <form onSubmit={(e) => {
+                e.preventDefault()
+                checkSubmission()
+            }}>
+                <label htmlFor='startDateTime' style={padding}>What time will the start date ({startDateString}) begin?</label>
+                <input id='startDateTime' type='time' onChange={(e) => setStartTime(e.target.value)}></input>
+                <br></br><br></br>
+                <label htmlFor='endDateTime' style={padding}>What time will the end date ({endDateString}) end?</label>
+                <input id='endDateTime' type='time' onChange={(e) => setEndTime(e.target.value)} style={padding}></input>
+                {
+                    !decided
+                    &&
+                    <>
+                    <br></br><br></br>
+                    <label htmlFor='expirationDateTime' style={padding}>When will the expiration date ({expirationDateString}) end?</label>
+                    <input id='expirationDateTime' type='time' onChange={(e) => {setExpirationTime(e.target.value)}}></input>
+                    </>
+                }
+                <br></br><br></br>
+                <button id='submit' type='submit' value='Submit'>Submit ➡️</button>
+            </form>
+        </div>
+        </>
+    )
+}
   
-export function CalendarNameStep({setStep, setForm, form, step}) {
+export function CalendarNameStep({form, setForm, step, setStep}) {
     const [name, setName] = useState('')
     return (
     <>
