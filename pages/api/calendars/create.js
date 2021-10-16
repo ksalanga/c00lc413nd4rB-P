@@ -27,12 +27,12 @@ async function addressTimezoneProvider(address, timestamp) {
         throw 'Invalid local Location request'
     }
 
-    const localLocationGeocode = geoCodeResponse.data.results[0].geometry.location
+    const localTimezoneGeocode = geoCodeResponse.data.results[0].geometry.location
 
     // get the TimeZone Offset of the user's local location
     const timeZoneResponse = await googleMapsClient
     .timezone({
-        params: { location: localLocationGeocode,
+        params: { location: localTimezoneGeocode,
         timestamp: timestamp,
         key: process.env.GOOGLE_MAPS_KEY } //timestamp ought to be in seconds
     })
@@ -52,7 +52,7 @@ async function createCalendarWithAPIKey(form) {
     Calendar Creation must have 10 Keys (case Sensitive):
     name (String)
     creator (String)
-    localLocation (String)
+    localTimezone (String)
     decidedOrUndecided (JSON Object)
     privateOrPublic (String)
     maximumPeople (String)
@@ -72,7 +72,7 @@ async function createCalendarWithAPIKey(form) {
 
     if (form['name'] === undefined
     || form['creator'] === undefined
-    || form['localLocation'] === undefined
+    || form['localTimezone'] === undefined
     || form['decidedOrUndecided'] === undefined
     || form['privateOrPublic'] === undefined
     || form['maximumPeople'] === undefined
@@ -87,7 +87,7 @@ async function createCalendarWithAPIKey(form) {
     // Incorrect Types for keys
     if (typeof(form['name']) !== 'string'
     || typeof(form['creator']) !== 'string'
-    || typeof(form['localLocation']) !== 'string'
+    || typeof(form['localTimezone']) !== 'string'
     || typeof(form['decidedOrUndecided']) !== 'object'
     || typeof(form['privateOrPublic']) !== 'string'
     || typeof(form['maximumPeople']) !== 'string'
@@ -113,12 +113,12 @@ async function isValidKey(key) {
 async function localTimeZoneHandling(form) {
     try {
         const today = new Date()
-        const localTimezoneData = await addressTimezoneProvider(form['localLocation'], today.getTime() * .001)
+        const localTimezoneData = await addressTimezoneProvider(form['localTimezone'], today.getTime() * .001)
         
-        // append localTimezoneData to form['localLocation']
-        form['localLocation'] = {
-            name: form['localLocation'],
-            geocode: localLocationGeocode,
+        // append localTimezoneData to form['localTimezone']
+        form['localTimezone'] = {
+            name: form['localTimezone'],
+            geocode: localTimezoneGeocode,
             timestamp: today.getTime() * .001,
             ...localTimezoneData
         }
