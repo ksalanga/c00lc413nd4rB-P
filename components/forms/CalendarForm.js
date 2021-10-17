@@ -273,18 +273,39 @@ export function DatesTimeStep({form, setForm, step, setStep, decided}) {
     const [expirationTime, setExpirationTime] = useState('')
     const padding = { marginLeft: '12px', paddingRight: '10px' }
 
+    useEffect(() => {}, [form])
+
     const checkSubmission = () => {
         if (startTime === '' || endTime === '' || (!decided && expirationTime === '')) {
             return
         }
 
-        // before submit, all dates arrays are going to be at 12AM.
+        // before submit, all dates arrays are going to be at 12AM of the local timezone.
         // if someone submits at 11:59PM of today and we start doing the comparison at 12 AM of the next day,
         // no matter how much time you add to today + 11:59 (max value) will always be less than the current time
         // since our functionality only takes the current 12 AM date's value and adds the corresponding hours and minutes
         // our goal is to update this min date value so now, min date will be tomorrow at 12AM,
         // we must also update maxDate
         // this problem only arrises on Decided Dates because for an undecided event, we always have a one day buffer
+        if (decided) {
+            const startDateDay = startDate.getDate()
+            const startDateMonth = startDate.getMonth()
+            const startDateYear = startDate.getFullYear()
+
+            const rightNow = new Date()
+            if (startDateDay < rightNow.getDate() && startDateMonth < rightNow.getMonth() && startDateYear < rightNow.getFullYear()) {
+                var updatedDates = form['dates']
+
+                if (updatedDates[0].getTime() === updatedDates[updatedDates.length - 1].getTime()) {
+                    updatedDates[0] = new Date(format(rightNow, 'yyyy-MM-dd') + 'T00:00:00')
+                    updatedDates[updatedDates.length - 1] = updatedDates[0]
+                } else {
+                    updatedDates[0] = new Date(format(rightNow, 'yyyy-MM-dd') + 'T00:00:00')
+                }
+
+                setForm({...form, dates: updatedDates})
+            }
+        }
 
         const startDateWithTime = add(startDate, {
             hours: parseInt(startTime.split(':')[0]),
