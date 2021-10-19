@@ -264,9 +264,12 @@ export function CalendarSelectionStep({step, setStep, setDecided}) {
 }
 
 export function DatesTimeStep({form, setForm, step, setStep, decided}) {
-    const startDate = form['dates'][0], startDateString = format(startDate, 'MMMM d, yyyy')
-    const endDate = form['dates'][form['dates'].length - 1], endDateString = format(endDate, 'MMMM d, yyyy')
-    const expirationDate = form['selectionExpirationDate'], expirationDateString = expirationDate ? format(expirationDate, 'MMMM d, yyyy') : ''
+    const startDate = form['dates'][0],
+    startDateString = format(startDate, 'MMMM d, yyyy'),
+    endDate = form['dates'][form['dates'].length - 1],
+    endDateString = format(endDate, 'MMMM d, yyyy'),
+    expirationDate = form['selectionExpirationDate'], 
+    expirationDateString = expirationDate ? format(expirationDate, 'MMMM d, yyyy') : ''
 
     const [startTime, setStartTime] = useState('')
     const [endTime, setEndTime] = useState('')
@@ -276,7 +279,9 @@ export function DatesTimeStep({form, setForm, step, setStep, decided}) {
     useEffect(() => {}, [form])
 
     const checkSubmission = () => {
-        if (startTime === '' || endTime === '' || (!decided && expirationTime === '')) {
+        if (startTime === '' 
+        || endTime === '' 
+        || (!decided && expirationTime === '')) {
             return
         }
 
@@ -293,7 +298,9 @@ export function DatesTimeStep({form, setForm, step, setStep, decided}) {
             const startDateYear = startDate.getFullYear()
 
             const rightNow = new Date()
-            if (startDateDay < rightNow.getDate() && startDateMonth < rightNow.getMonth() && startDateYear < rightNow.getFullYear()) {
+            if (startDateDay < rightNow.getDate() 
+            && startDateMonth < rightNow.getMonth() 
+            && startDateYear < rightNow.getFullYear()) {
                 var updatedDates = form['dates']
 
                 if (updatedDates[0].getTime() === updatedDates[updatedDates.length - 1].getTime()) {
@@ -304,6 +311,7 @@ export function DatesTimeStep({form, setForm, step, setStep, decided}) {
                 }
 
                 setForm({...form, dates: updatedDates})
+                return
             }
         }
 
