@@ -89,7 +89,6 @@ export default function CalendarForm(props) {
 
         // Calendar dates are all in the time zone of the local machine of the user at 12 AM of each day.
         const form = {
-            localTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             privateOrPublic: privOrPublic[0] ? 'private' : 'public',
             dates: dates, 
             maximumPeople: maxPeople,
